@@ -1,0 +1,2874 @@
+[
+  {
+    "name": "001.py",
+    "header": "关卡 1-4 · 持久记忆（填空版）\n\n执行流程图（python3 fill_memory.py）：\n\n【启动】\n  ├─ 加载 embedding 模型\n  └─ 打开持久化向量库              ← 填空 1 在这里（PersistentClient）\n\n【交互循环】\n  └─ 调 LLM（带 remember / recall 工具）\n       ├─ remember → collection.add   ← 填空 2（写长期记忆）\n       └─ recall   → collection.query ← 填空 3（读长期记忆）\n\n规则：\n  1. 下面有 3 个空（标了「填空 X」），填对了才能跑通。\n  2. 卡住看 answers.md（关卡 1-4 那节）。\n  3. 填完跑 python3 fill_memory.py，两步演示跑通 = 过关。",
+    "functions": [
+      {
+        "name": "remember",
+        "line": 60,
+        "doc": "把重要信息写进长期记忆"
+      },
+      {
+        "name": "recall",
+        "line": 73,
+        "doc": "从长期记忆检索相关信息"
+      },
+      {
+        "name": "__call__",
+        "line": 40,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "chromadb",
+      "json",
+      "modelscope.hub.snapshot_download",
+      "openai",
+      "sentence_transformers",
+      "uuid"
+    ],
+    "blanks": 5,
+    "topic": [
+      "1-4",
+      "1-4"
+    ],
+    "calls": [
+      "'\\n'.join",
+      "LocalEmbeddingFunction",
+      "OpenAI",
+      "SentenceTransformer",
+      "TOOL_FUNCS[name]",
+      "client.chat.completions.create",
+      "collection.add",
+      "collection.count",
+      "collection.query",
+      "db.get_or_create_collection",
+      "embed_model.encode",
+      "embed_model.encode(input).tolist",
+      "input",
+      "input('你: ').strip",
+      "json.loads",
+      "messages.append",
+      "print",
+      "range",
+      "snapshot_download",
+      "str",
+      "user.lower"
+    ]
+  },
+  {
+    "name": "003.py",
+    "header": "关卡 1-5 · 流式输出（stream）\n\n核心：stream=True 时，API 不是一次性返回完整消息，而是返回一个「增量流」（迭代器）。\n每个 chunk 里是 delta（增量），要自己累积，才能拼出完整内容。\n\n和普通（非流式）的本质区别：\n  非流式：一次 create() 返回完整 msg.content，直接用\n  流式：   create(stream=True) 返回迭代器，逐 chunk 返回 delta.content，要自己累积\n\n执行流程图（python3 003.py）：\n\n【开启流式】create(stream=...)              ← 填空 1\n【遍历增量】for chunk in stream:\n  ├─ delta.content       → 累积普通文本      ← 填空 2\n  └─ delta.tool_calls    → 累积工具调用参数（分片） ← 填空 3\n【收尾】返回累积的完整内容 + 工具调用\n\n规则：\n  1. 下面有 3 个空（共 4 处），填对了才能跑通。\n  2. 卡住看 answers.md（关卡 1-5 那节）。\n  3. 跑通：能看到文字逐字吐出来，且工具调用的参数正确拼起来。",
+    "functions": [
+      {
+        "name": "get_weather",
+        "line": 34,
+        "doc": ""
+      },
+      {
+        "name": "stream_chat",
+        "line": 54,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "json",
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-5"
+    ],
+    "calls": [
+      "OpenAI",
+      "client.chat.completions.create",
+      "len",
+      "print",
+      "stream_chat",
+      "tool_calls.append"
+    ]
+  },
+  {
+    "name": "005.py",
+    "header": "关卡 1-6 · Plan-and-Execute（填空版）\n\n核心：把「规划」和「执行」拆成两个阶段。\n  1. Planner：让 LLM 先一次性输出完整计划（步骤列表，结构化 JSON）\n  2. Executor：按顺序逐步执行，每步该调工具就调工具，结果累积进上下文\n\n执行流程图（python3 005.py）：\n\n【规划】planner(任务) ──> LLM 输出 JSON 计划 {\"steps\":[{step,desc,tool,args},...]}\n【执行】for step in plan[\"steps\"]:\n   ├─ 有 tool  → 调真实函数 get_weather(...)      ← 填空 2\n   └─ 无 tool  → LLM 根据「已完成结果」写该步内容   ← 填空 3\n【汇总】把所有步骤结果拼成最终答案\n\n和 ReAct（1-4/1-5）的本质区别：\n  ReAct：想一步 → 做一步 → 看结果 → 再想下一步（思考/行动每步交错）\n  Plan-and-Execute：先想好全部步骤 → 再机械推进执行（规划一次、执行分离）\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 1-6 那节）。\n  3. 跑通：先打印出完整计划，再按顺序执行每步，最后拼出最终答案。",
+    "functions": [
+      {
+        "name": "get_weather",
+        "line": 35,
+        "doc": "查询天气（模拟）"
+      },
+      {
+        "name": "planner",
+        "line": 72,
+        "doc": "阶段 1：让 LLM 一次性输出完整计划"
+      },
+      {
+        "name": "executor",
+        "line": 92,
+        "doc": "阶段 2：按顺序执行每个步骤"
+      }
+    ],
+    "imports": [
+      "json",
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-6"
+    ],
+    "calls": [
+      "'\\n'.join",
+      "OpenAI",
+      "client.chat.completions.create",
+      "executor",
+      "fn",
+      "json.loads",
+      "planner",
+      "print",
+      "raw.strip",
+      "raw.strip().removeprefix",
+      "raw.strip().removeprefix('```json').removeprefix",
+      "raw.strip().removeprefix('```json').removeprefix('```').removesuffix",
+      "raw.strip().removeprefix('```json').removeprefix('```').removesuffix('```').strip",
+      "results.append",
+      "s.get"
+    ]
+  },
+  {
+    "name": "007.py",
+    "header": "关卡 1-7 · Reflection 自我修正（填空版）\n\n核心：让 agent 执行完任务后「反思」自己的结果，发现错误再重试，直到修对。\n这是从 ReAct（每步想）和 Plan-and-Execute（先规划）再往前走一步：执行完还能「回头看」。\n\n执行流程图（python3 007.py）：\n\n【第一轮】solve(题目) ──────────> LLM 直接作答 → answer_1\n【反思】  reflect(题目, answer_1) ─> LLM 当批改老师挑错 → feedback\n【第二轮】solve(题目, feedback) ─> LLM 带着反思意见重做 → answer_2\n\n和 ReAct / Plan 的区别：\n  ReAct：想一步 → 做一步 → 看结果（过程驱动）\n  Plan-and-Execute：先规划 → 再执行（全局驱动）\n  Reflection：执行 → 反思 → 重试（结果驱动，回头看）\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 1-7 那节）。\n  3. 跑通：能看到第一轮答案、反思意见、第二轮修正后的答案。",
+    "functions": [
+      {
+        "name": "solve",
+        "line": 36,
+        "doc": "让 LLM 解一道题。feedback 是上一轮反思的意见（可选）"
+      },
+      {
+        "name": "reflect",
+        "line": 54,
+        "doc": "让 LLM 反思自己的答案，找出错误"
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-7"
+    ],
+    "calls": [
+      "OpenAI",
+      "client.chat.completions.create",
+      "messages.append",
+      "print",
+      "reflect",
+      "solve"
+    ]
+  },
+  {
+    "name": "008.py",
+    "header": "关卡 1-8 · 工具设计进阶（填空版）\n\n核心：真实世界的工具调用不可靠——会超时、会偶发失败、会重复提交。\n生产级 agent 要给工具包四层防护：\n  1. 重试 retry       —— 偶发失败自动重试几次\n  2. 超时 timeout     —— 工具卡住不无限等\n  3. 幂等 idempotent  —— 重复请求不重复生效\n  4. 降级 fallback    —— 彻底失败给个兜底，保证可用\n\n执行流程图（python3 008.py）：\n\ncall_weather(城市)\n  ① 幂等：查缓存，命中直接返回          ← 填空 1\n  ② 重试循环（最多 3 次）：\n       每次调 get_weather 套超时          ← 填空 2\n  ③ 降级：3 次都失败 → 返回兜底          ← 填空 3\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 1-8 那节）。\n  3. 跑通：能看到工具失败时自动重试、卡死时超时、彻底失败时降级返回。",
+    "functions": [
+      {
+        "name": "get_weather",
+        "line": 33,
+        "doc": ""
+      },
+      {
+        "name": "call_weather",
+        "line": 47,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "concurrent.futures",
+      "random",
+      "time"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-8"
+    ],
+    "calls": [
+      "ConnectionError",
+      "ThreadPoolExecutor",
+      "_executor.submit",
+      "call_weather",
+      "fut.result",
+      "print",
+      "random.random",
+      "range",
+      "time.sleep"
+    ]
+  },
+  {
+    "name": "009.py",
+    "header": "关卡 1-9 · 可观测性 tracing（填空版）\n\n核心：agent 是个黑盒。tracing 给 agent 装摄像头，记录每一步：\n  1. 每一步「类型 + 内容」（thought/action/observation/final）\n  2. 每一步「耗时」（定位慢在哪）\n  3. 每一次 LLM 调用「花了多少 token」（定位贵在哪）\n\n执行流程图（python3 009.py）：\n\n用户提问\n  └─ for step in 循环：\n       ├─ 调 LLM（计时 + 记 token）→ record(\"llm_call\", ...)   ← 填空 2\n       ├─ 有工具调用？ → record(\"action\", ...) + 执行 + record(\"observation\", ...)\n       └─ 无工具调用 → record(\"final\", ...) 结束\n  └─ record() 里算耗时                                          ← 填空 1\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 1-9 那节）。\n  3. 跑通：能看到每一步的 trace，以及最后的总耗时 / 总 token 汇总。",
+    "functions": [
+      {
+        "name": "get_weather",
+        "line": 33,
+        "doc": ""
+      },
+      {
+        "name": "record",
+        "line": 51,
+        "doc": "记录一条 trace。kind=类型，content=内容，tokens=token数，t0=开始时间戳（算耗时用）"
+      },
+      {
+        "name": "run_agent",
+        "line": 71,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "json",
+      "openai",
+      "time"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-9"
+    ],
+    "calls": [
+      "OpenAI",
+      "TOOL_FUNCS[name]",
+      "client.chat.completions.create",
+      "e.get",
+      "json.loads",
+      "len",
+      "messages.append",
+      "print",
+      "range",
+      "record",
+      "round",
+      "run_agent",
+      "str",
+      "sum",
+      "time.time",
+      "trace.append"
+    ]
+  },
+  {
+    "name": "010.py",
+    "header": "关卡 1-10 · 综合单 Agent（填空版）\n\n核心：把前面 9 关串成一个「生产级单 agent」。\n这关的填空不考单个技巧，考「消息流闭环」——这是综合 agent 的骨架：\n  短期记忆 = messages 列表，每轮都要正确地把用户输入、工具结果、最终答案「喂回」列表，\n  漏任何一环，下一轮就「失忆」。\n\n执行流程图（python3 010.py）：\n\n用户提问 → run_agent(question, messages)\n  ① 把用户输入加进 messages                    ← 填空 1\n  ② 调 LLM（带工具 + 记 trace）\n  ③ 有工具调用？结果喂回 messages              ← 填空 2\n  ④ 无工具调用 → 最终答案加回 messages          ← 填空 3，然后返回\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 1-10 那节）。\n  3. 跑通：能连续问两轮（先天气再算数），第二轮还记得第一轮聊过什么。",
+    "functions": [
+      {
+        "name": "get_weather_raw",
+        "line": 35,
+        "doc": ""
+      },
+      {
+        "name": "call_weather",
+        "line": 48,
+        "doc": ""
+      },
+      {
+        "name": "calc",
+        "line": 64,
+        "doc": ""
+      },
+      {
+        "name": "record",
+        "line": 84,
+        "doc": ""
+      },
+      {
+        "name": "run_agent",
+        "line": 99,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "concurrent.futures",
+      "json",
+      "openai",
+      "random",
+      "time"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-10"
+    ],
+    "calls": [
+      "ConnectionError",
+      "OpenAI",
+      "TOOL_FUNCS[name]",
+      "ThreadPoolExecutor",
+      "_executor.submit",
+      "any",
+      "client.chat.completions.create",
+      "eval",
+      "fut.result",
+      "input",
+      "input('你: ').strip",
+      "json.loads",
+      "len",
+      "messages.append",
+      "print",
+      "random.random",
+      "range",
+      "record",
+      "round",
+      "run_agent",
+      "set",
+      "str",
+      "time.sleep",
+      "time.time",
+      "trace.append",
+      "user.lower"
+    ]
+  },
+  {
+    "name": "011.py",
+    "header": "关卡 1-11 · 上下文窗口管理（填空版）\n\n核心：LLM 一次能看进去的内容有上限（上下文窗口）。对话太长会超窗。\n这关演示「摘要」策略：估算 token → 切分（最近保留原文 / 更早摘要）→ 用摘要替换。\n\n执行流程图（python3 011.py）：\n\n[长对话 messages]\n  └─ estimate_tokens() 估算总 token                       ← 填空 1\n       ├─ < 上限：不动\n       └─ ≥ 上限：\n            ├─ 切出「最近 KEEP_RECENT 条」和「更早的」     ← 填空 2\n            ├─ summarize() 用 LLM 把更早的压成摘要\n            └─ 拼成 new_messages = system + 摘要 + 最近     ← 填空 3\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 1-11 那节）。\n  3. 跑通：能看到超窗 → 摘要压缩 → 省下大量 token。",
+    "functions": [
+      {
+        "name": "estimate_tokens",
+        "line": 34,
+        "doc": "粗估 token：中文 1 字≈1 token，用字符数近似（生产用 tiktoken 更准）"
+      },
+      {
+        "name": "summarize",
+        "line": 45,
+        "doc": "用 LLM 把早期对话压成一段摘要"
+      },
+      {
+        "name": "manage_window",
+        "line": 59,
+        "doc": "超窗时：把最旧的对话摘要掉，保留 system + 摘要 + 最近几条"
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-11"
+    ],
+    "calls": [
+      "'\\n'.join",
+      "OpenAI",
+      "client.chat.completions.create",
+      "estimate_tokens",
+      "len",
+      "manage_window",
+      "messages.append",
+      "print",
+      "range",
+      "summarize"
+    ]
+  },
+  {
+    "name": "012.py",
+    "header": "关卡 1-12 · token 计数与成本优化（填空版）\n\n核心：token 就是钱。会算 token、会算成本、会对比省钱策略。\n\n执行流程图（python3 012.py）：\n\n[贵写法 prompt] ──> 调 LLM ──> 记 usage（token 数）\n[省写法 prompt] ──> 调 LLM ──> 记 usage（token 数）\n  └─ 对比两次的 token 和成本\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 1-12 那节）。\n  3. 跑通：能看到贵写法 vs 省写法省了多少 token 和多少钱。",
+    "functions": [
+      {
+        "name": "estimate_tokens",
+        "line": 30,
+        "doc": "本地近似估算 token：中文 1 字≈1 token，英文按词估"
+      },
+      {
+        "name": "cost",
+        "line": 40,
+        "doc": "算一次调用的成本（元）"
+      },
+      {
+        "name": "ask",
+        "line": 58,
+        "doc": "调一次 LLM，返回 (答案, prompt_tokens, completion_tokens)"
+      }
+    ],
+    "imports": [
+      "openai",
+      "re"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-12",
+      "1-12"
+    ],
+    "calls": [
+      "OpenAI",
+      "ask",
+      "client.chat.completions.create",
+      "cost",
+      "estimate_tokens",
+      "int",
+      "len",
+      "print",
+      "re.findall"
+    ]
+  },
+  {
+    "name": "013.py",
+    "header": "关卡 1-13 · Prompt 工程（填空版）\n\n核心：同一个任务，换个问法，结果天差地别。四种经典技巧：\n  零样本 zero-shot  —— 直接问\n  few-shot          —— 给例子\n  CoT (思维链)      —— 加「一步步想」\n  角色设定          —— 给身份\n\n执行流程图（python3 013.py）：\n\n同一个任务 → 用四种 prompt 分别调 LLM → 对比四个答案\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 1-13 那节）。\n  3. 跑通：能看到四种问法给出不同风格的答案。",
+    "functions": [
+      {
+        "name": "call",
+        "line": 33,
+        "doc": ""
+      },
+      {
+        "name": "zero_shot",
+        "line": 43,
+        "doc": ""
+      },
+      {
+        "name": "few_shot",
+        "line": 47,
+        "doc": ""
+      },
+      {
+        "name": "cot",
+        "line": 54,
+        "doc": ""
+      },
+      {
+        "name": "role_play",
+        "line": 61,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-13",
+      "1-13"
+    ],
+    "calls": [
+      "OpenAI",
+      "call",
+      "client.chat.completions.create",
+      "cot",
+      "few_shot",
+      "print",
+      "role_play",
+      "zero_shot"
+    ]
+  },
+  {
+    "name": "014.py",
+    "header": "关卡 1-14 · 结构化输出（填空版）\n\n核心：让 LLM 稳定吐 JSON，失败自动校验重试。三招：\n  ① 明确要求「只输出 JSON」\n  ② json.loads 校验\n  ③ 失败把报错喂回去重试\n\n执行流程图（python3 014.py）：\n\n一段文本 → 让 LLM 提取结构化信息（JSON）\n  └─ json.loads 校验\n       ├─ 成功 → 返回 dict\n       └─ 失败 → 把报错喂回，重试\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 1-14 那节）。\n  3. 跑通：能从文本里解析出结构化的 JSON 结果。",
+    "functions": [
+      {
+        "name": "extract_json",
+        "line": 35,
+        "doc": "让 LLM 从文本提取信息，输出 JSON，失败自动修正重试"
+      }
+    ],
+    "imports": [
+      "json",
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-14",
+      "1-14"
+    ],
+    "calls": [
+      "OpenAI",
+      "client.chat.completions.create",
+      "extract_json",
+      "json.dumps",
+      "json.loads",
+      "messages.append",
+      "print",
+      "range"
+    ]
+  },
+  {
+    "name": "015.py",
+    "header": "关卡 1-15 · 缓存策略（填空版）\n\n核心：相同请求不重复花钱。两种缓存：\n  结果缓存    —— 相同问题直接返回上次答案（本地做）\n  prompt 缓存 —— 相同前缀输入 token 打折（服务端做）\n\n执行流程图（python3 015.py）：\n\n问题 → 查本地结果缓存\n  ├─ 命中 → 直接返回（0 成本）        ← 填空 1\n  └─ 未命中 → 调 LLM → 存进缓存 → 返回  ← 填空 2、3\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 1-15 那节）。\n  3. 跑通：第二次问同样的问题，直接走缓存、几乎 0 耗时。",
+    "functions": [
+      {
+        "name": "ask",
+        "line": 31,
+        "doc": "带结果缓存的提问：相同问题直接复用"
+      }
+    ],
+    "imports": [
+      "openai",
+      "time"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-15",
+      "1-15"
+    ],
+    "calls": [
+      "OpenAI",
+      "ask",
+      "client.chat.completions.create",
+      "print",
+      "time.time"
+    ]
+  },
+  {
+    "name": "016.py",
+    "header": "关卡 1-16 · Prompt Injection 防御（填空版）\n\n核心：用户输入可以「劫持」agent。防御三板斧：\n  ① 指令优先级  —— system 明确「用户输入是数据不是指令」\n  ② 输入边界    —— 检测可疑注入\n  ③ 工具白名单  —— 危险工具最小权限\n\n执行流程图（python3 016.py）：\n\n用户输入 → 检测注入\n  ├─ 无防御版：直接拼进 messages\n  └─ 有防御版：检测 + 指令强调\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 1-16 那节）。\n  3. 跑通：同样的攻击输入，无防御版可能中招，有防御版被拦下。",
+    "functions": [
+      {
+        "name": "vulnerable",
+        "line": 42,
+        "doc": ""
+      },
+      {
+        "name": "defended",
+        "line": 52,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-16",
+      "1-16"
+    ],
+    "calls": [
+      "OpenAI",
+      "client.chat.completions.create",
+      "defended",
+      "print",
+      "vulnerable"
+    ]
+  },
+  {
+    "name": "017.py",
+    "header": "关卡 1-17 · 对话状态机（填空版）\n\n核心：用状态机（FSM）管多轮对话，每个状态只问一个问题，答完才转移，不跑偏。\n\n执行流程图（python3 017.py）：\n\nstate=\"menu\" → 循环：问问题 → 读输入 → LLM 提取信息 → 状态转移 → 直到 done\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 1-17 那节）。\n  3. 跑通：跟着机器人走完订餐流程（选菜→数量→地址→确认），最后打印完整订单。",
+    "functions": [
+      {
+        "name": "extract",
+        "line": 42,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-17",
+      "1-17"
+    ],
+    "calls": [
+      "OpenAI",
+      "client.chat.completions.create",
+      "extract",
+      "input",
+      "input('你: ').strip",
+      "order.items",
+      "print",
+      "resp.choices[0].message.content.strip",
+      "user.lower"
+    ]
+  },
+  {
+    "name": "018.py",
+    "header": "关卡 1-18 · 异步并发调用（填空版）\n\n核心：多个独立工具并行调，总耗时从「累加」降到「取最慢」。asyncio + gather。\n\n执行流程图（python3 018.py）：\n\n串行：for → await（累加） vs 并行：gather（取最慢） → 对比耗时\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 1-18 那节）。\n  3. 跑通：看到并行比串行快约 5 倍。",
+    "functions": [
+      {
+        "name": "get_weather",
+        "line": 21,
+        "doc": ""
+      },
+      {
+        "name": "serial",
+        "line": 30,
+        "doc": "串行：一个接一个"
+      },
+      {
+        "name": "parallel",
+        "line": 39,
+        "doc": "并行：asyncio.gather 一起发"
+      }
+    ],
+    "imports": [
+      "asyncio",
+      "time"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-18",
+      "1-18"
+    ],
+    "calls": [
+      "asyncio.gather",
+      "asyncio.run",
+      "asyncio.sleep",
+      "get_weather",
+      "parallel",
+      "print",
+      "results.append",
+      "serial",
+      "time.time"
+    ]
+  },
+  {
+    "name": "019.py",
+    "header": "关卡 1-19 · 单 agent 评测（填空版）\n\n核心：建 eval 集（问题+标准答案），跑一遍，用 LLM-as-Judge 判对错，算出通过率。\n\n执行流程图（python3 019.py）：\n\nEVAL_SET → for 每道题：agent 作答 → judge 判对错 → 统计通过率\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 1-19 那节）。\n  3. 跑通：看到 5 道题的作答结果和最终通过率。",
+    "functions": [
+      {
+        "name": "agent",
+        "line": 37,
+        "doc": ""
+      },
+      {
+        "name": "judge",
+        "line": 51,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-19",
+      "1-19"
+    ],
+    "calls": [
+      "OpenAI",
+      "agent",
+      "client.chat.completions.create",
+      "judge",
+      "len",
+      "print",
+      "resp.choices[0].message.content.strip"
+    ]
+  },
+  {
+    "name": "020.py",
+    "header": "关卡 2-1 · 层级式 Multi-Agent：Orchestrator + Workers（填空版）\n\n核心：主 agent 拆任务 → 分派 worker 各自执行 → 汇总。\n\n执行流程图（python3 020.py）：\n\n大任务 → orchestrator_plan 拆子任务 → worker 各自执行 → orchestrator_summarize 汇总\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 2-1 那节）。\n  3. 跑通：看到 3 个子任务被拆出、3 个 worker 结果、最终汇总。",
+    "functions": [
+      {
+        "name": "llm",
+        "line": 25,
+        "doc": ""
+      },
+      {
+        "name": "orchestrator_plan",
+        "line": 34,
+        "doc": ""
+      },
+      {
+        "name": "worker",
+        "line": 42,
+        "doc": ""
+      },
+      {
+        "name": "orchestrator_summarize",
+        "line": 49,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-1",
+      "2-1"
+    ],
+    "calls": [
+      "'\\n'.join",
+      "OpenAI",
+      "client.chat.completions.create",
+      "enumerate",
+      "line.strip",
+      "line.strip('- ').strip",
+      "llm",
+      "orchestrator_plan",
+      "orchestrator_summarize",
+      "plan.split",
+      "print",
+      "resp.choices[0].message.content.strip",
+      "worker"
+    ]
+  },
+  {
+    "name": "020_zhangdi.py",
+    "header": "张帝秋招定级器 · 层级式 Multi-Agent 实战（基于 020.py 结构）\n\n把「张帝秋招汇总」里的企业，用 2-1 层级式架构，按统一权重规则重新定级排序。\n核心权重（orchestrator 顶层控制，贯穿每个 worker）：\n  北京户口 > 北京工作地 > 专业匹配 > 薪酬\n\n和 020.py 的结构一一对应（策略/执行分离）：\n  020.py 的 orchestrator_plan（拆任务）  → 这里变成「定义 WEIGHT_RULE + 提供 COMPANIES 清单」\n  020.py 的 worker（执行子任务）        → 这里变成「评估单个企业 → 输出定级 + 理由」\n  020.py 的 orchestrator_summarize（汇总）→ 这里变成「按权重排序出最终总表」\n\n区别：企业清单是已知输入，不需要 LLM 拆任务；orchestrator 的核心职责\n从「拆任务」变成了「定规则 + 汇总排序」。\n\n执行流程（python3 020_zhangdi.py）：\n\nCOMPANIES 企业清单\n  └─ for 每家企业 → worker 评估（按权重规则打分定级）\n  └─ orchestrator 汇总所有定级 → 按权重排序 → 最终总表\n\n（worker 已用 asyncio.gather 并发评估 28 家企业，对应 1-18 async_tools.py；\norchestrator 汇总只调一次，保持同步。）",
+    "functions": [
+      {
+        "name": "llm",
+        "line": 91,
+        "doc": ""
+      },
+      {
+        "name": "worker",
+        "line": 100,
+        "doc": "worker（异步）：按权重规则评估单个企业，输出「定级 + 理由」"
+      },
+      {
+        "name": "orchestrator_summarize",
+        "line": 113,
+        "doc": "orchestrator：汇总所有 worker 的定级，按权重排序出最终总表"
+      },
+      {
+        "name": "main",
+        "line": 123,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "asyncio",
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [],
+    "calls": [
+      "'\\n'.join",
+      "AsyncOpenAI",
+      "OpenAI",
+      "aclient.chat.completions.create",
+      "asyncio.gather",
+      "asyncio.run",
+      "client.chat.completions.create",
+      "enumerate",
+      "llm",
+      "main",
+      "orchestrator_summarize",
+      "print",
+      "resp.choices[0].message.content.strip",
+      "worker"
+    ]
+  },
+  {
+    "name": "021.py",
+    "header": "关卡 2-2 · 流水线式 Multi-Agent（填空版）\n\n核心：研究 → 写作 → 审核 串联，上一个输出是下一个输入。\n\n执行流程图（python3 021.py）：\n\n主题 → research 出素材 → write 基于素材写 → review 审核出最终版\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 2-2 那节）。\n  3. 跑通：看到研究、写作、审核三个阶段的产出依次流下来。",
+    "functions": [
+      {
+        "name": "llm",
+        "line": 25,
+        "doc": ""
+      },
+      {
+        "name": "research",
+        "line": 34,
+        "doc": ""
+      },
+      {
+        "name": "write",
+        "line": 41,
+        "doc": ""
+      },
+      {
+        "name": "review",
+        "line": 48,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-2",
+      "2-2"
+    ],
+    "calls": [
+      "OpenAI",
+      "client.chat.completions.create",
+      "llm",
+      "print",
+      "research",
+      "resp.choices[0].message.content.strip",
+      "review",
+      "write"
+    ]
+  },
+  {
+    "name": "022.py",
+    "header": "关卡 2-3 · 协作式 Multi-Agent（对话/辩论）（填空版）\n\n核心：两个 agent 多轮对话，互相质疑补充，直到达成一致。\n\n执行流程图（python3 022.py）：\n\nagent_a 提方案 → agent_b 回应 → agree 判是否一致 → 不一致 A 继续 → 循环直到一致\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 2-3 那节）。\n  3. 跑通：看到 A、B 两位专家就微服务 vs 单体展开辩论，最终达成一致或到轮数上限。",
+    "functions": [
+      {
+        "name": "llm",
+        "line": 25,
+        "doc": ""
+      },
+      {
+        "name": "agent_a",
+        "line": 34,
+        "doc": ""
+      },
+      {
+        "name": "agent_b",
+        "line": 41,
+        "doc": ""
+      },
+      {
+        "name": "agree",
+        "line": 48,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-3",
+      "2-3"
+    ],
+    "calls": [
+      "OpenAI",
+      "agent_a",
+      "agent_b",
+      "agree",
+      "client.chat.completions.create",
+      "llm",
+      "print",
+      "range",
+      "resp.choices[0].message.content.strip"
+    ]
+  },
+  {
+    "name": "023.py",
+    "header": "关卡 2-4 · 竞争式 Multi-Agent（生成 + judge）（填空版）\n\n核心：多个 agent 独立生成方案，judge 评出最优。\n\n执行流程图（python3 023.py）：\n\n任务 → 3 个 candidate 独立生成方案 → judge 评估选最优\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 2-4 那节）。\n  3. 跑通：看到 3 个不同风格的 slogan，以及 judge 选出的最优。",
+    "functions": [
+      {
+        "name": "llm",
+        "line": 25,
+        "doc": ""
+      },
+      {
+        "name": "candidate",
+        "line": 34,
+        "doc": ""
+      },
+      {
+        "name": "judge",
+        "line": 41,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-4",
+      "2-4"
+    ],
+    "calls": [
+      "OpenAI",
+      "candidate",
+      "client.chat.completions.create",
+      "enumerate",
+      "f'\\n {task}这个是task,'.join",
+      "judge",
+      "llm",
+      "print",
+      "resp.choices[0].message.content.strip"
+    ]
+  },
+  {
+    "name": "024.py",
+    "header": "关卡 2-5 · A2A 通信协议（填空版）\n\n核心：多 agent 用统一的结构化 JSON 协议通信（A2A）。\n消息字段：msg_id / sender / receiver / type / payload / timestamp。\n\n执行流程图（python3 024.py）：\n\nagent A → make_message 构造 JSON → agent B → validate/handle → 回信\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 2-5 那节）。\n  3. 跑通：看到 A 发的 JSON 消息、B 的回信、非法消息被拦截。",
+    "functions": [
+      {
+        "name": "make_message",
+        "line": 26,
+        "doc": "构造一条 A2A 消息"
+      },
+      {
+        "name": "validate_message",
+        "line": 42,
+        "doc": ""
+      },
+      {
+        "name": "handle_message",
+        "line": 56,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "json",
+      "time",
+      "uuid"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-5",
+      "2-5"
+    ],
+    "calls": [
+      "handle_message",
+      "json.dumps",
+      "make_message",
+      "print",
+      "time.time",
+      "uuid.uuid4",
+      "validate_message"
+    ]
+  },
+  {
+    "name": "025.py",
+    "header": "关卡 2-6 · 状态与上下文共享（填空版）\n\n核心：多 agent 通过一个共享 state 字典交换中间结果。\n\n执行流程图（python3 025.py）：\n\n共享 state → worker_a 写 weather → worker_b 读写 → worker_c 读最终答案\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 2-6 那节）。\n  3. 跑通：看到 A 写天气、B 读天气写总结、C 读总结出最终答案。",
+    "functions": [
+      {
+        "name": "worker_a",
+        "line": 26,
+        "doc": ""
+      },
+      {
+        "name": "worker_b",
+        "line": 35,
+        "doc": ""
+      },
+      {
+        "name": "worker_c",
+        "line": 46,
+        "doc": "worker C：读所有状态，产出最终答案"
+      }
+    ],
+    "imports": [
+      "threading"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-6",
+      "2-6"
+    ],
+    "calls": [
+      "print",
+      "state.get",
+      "threading.Lock",
+      "worker_a",
+      "worker_b",
+      "worker_c"
+    ]
+  },
+  {
+    "name": "026.py",
+    "header": "关卡 2-7 · 容错与降级（填空版）\n\n核心：某个 worker 挂了，整体不崩。用 try/except 隔离 + 降级兜底。\n\n执行流程图（python3 026.py）：\n\n任务列表 → 每个 worker try/except → 失败降级兜底 → 统计整体不崩\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 2-7 那节）。\n  3. 跑通：看到部分 worker 失败但降级兜底，整体照常出结果。",
+    "functions": [
+      {
+        "name": "worker",
+        "line": 20,
+        "doc": ""
+      },
+      {
+        "name": "run_with_fallback",
+        "line": 31,
+        "doc": "带容错的执行：失败就降级兜底，返回 (结果, 状态)"
+      }
+    ],
+    "imports": [
+      "random"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-7",
+      "2-7"
+    ],
+    "calls": [
+      "RuntimeError",
+      "len",
+      "print",
+      "random.random",
+      "results.append",
+      "run_with_fallback",
+      "sum",
+      "worker"
+    ]
+  },
+  {
+    "name": "027.py",
+    "header": "关卡 2-8 · 并发与限流（填空版）\n\n核心：并行派发 + Semaphore 限流，防止并发过高打爆 API。\n\n执行流程图（python3 027.py）：\n\n10 任务 → Semaphore(3) 限流 → 最多 3 并发 → gather 全部完成\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 2-8 那节）。\n  3. 跑通：看到 10 个任务完成，但受信号量限制最多 3 个同时跑。",
+    "functions": [
+      {
+        "name": "worker",
+        "line": 21,
+        "doc": ""
+      },
+      {
+        "name": "main",
+        "line": 31,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "asyncio",
+      "random"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-8",
+      "2-8"
+    ],
+    "calls": [
+      "asyncio.Semaphore",
+      "asyncio.gather",
+      "asyncio.run",
+      "asyncio.sleep",
+      "main",
+      "print",
+      "random.uniform",
+      "range",
+      "worker"
+    ]
+  },
+  {
+    "name": "028.py",
+    "header": "关卡 2-10 · Multi-Agent 综合项目（填空版）\n\n核心：层级式拆任务 + asyncio 并发 + 容错降级，串成一个完整的多 agent 任务。\n\n执行流程图（python3 028.py）：\n\n3 个子任务 → safe_worker（容错）→ gather 并发 → 打印完整攻略\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers.md（关卡 2-10 那节）。\n  3. 跑通：看到 3 个子任务并发执行，最终拼成完整攻略。",
+    "functions": [
+      {
+        "name": "worker",
+        "line": 26,
+        "doc": ""
+      },
+      {
+        "name": "safe_worker",
+        "line": 38,
+        "doc": ""
+      },
+      {
+        "name": "main",
+        "line": 48,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "asyncio",
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-10",
+      "2-10"
+    ],
+    "calls": [
+      "AsyncOpenAI",
+      "aclient.chat.completions.create",
+      "asyncio.gather",
+      "asyncio.run",
+      "enumerate",
+      "main",
+      "print",
+      "resp.choices[0].message.content.strip",
+      "safe_worker",
+      "worker"
+    ]
+  },
+  {
+    "name": "029.py",
+    "header": "关卡 2-11 · 任务分解与子 agent 委派（填空版）\n\n核心：复杂任务先拆成子任务，再按能力路由给最合适的子 agent，各司其职而不是一个 agent 硬扛。\n\n执行流程图（python3 029.py）：\n\n复杂任务字符串 → decompose 拆成子任务 → route 按关键词匹配 agent → 逐个委派执行 → 汇总结果\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers-029-033.md（关卡 2-11 那节）。\n  3. 跑通：看到一个复杂任务被拆成 4 步，分别交给翻译/数学/总结/写作 agent 完成并汇总。",
+    "functions": [
+      {
+        "name": "decompose",
+        "line": 28,
+        "doc": "把一整个复杂任务拆成子任务列表"
+      },
+      {
+        "name": "route",
+        "line": 37,
+        "doc": "根据子任务内容，匹配最合适的子 agent"
+      },
+      {
+        "name": "execute",
+        "line": 46,
+        "doc": "委派每个子任务给匹配的 agent 执行，收集结果"
+      },
+      {
+        "name": "main",
+        "line": 57,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "asyncio"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-11",
+      "2-11"
+    ],
+    "calls": [
+      "a['run']",
+      "asyncio.run",
+      "decompose",
+      "execute",
+      "len",
+      "main",
+      "print",
+      "results.append",
+      "route"
+    ]
+  },
+  {
+    "name": "030.py",
+    "header": "关卡 2-12 · 消息路由与事件总线（填空版）\n\n核心：发布/订阅模式——发布者发消息，总线只把消息路由给「订阅了该主题」的订阅者，不串台。\n\n执行流程图（python3 030.py）：\n\n发布者 publish(topic, msg) → 总线按 topic 查订阅者 → 只投递给订阅该 topic 的 agent\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers-029-033.md（关卡 2-12 那节）。\n  3. 跑通：看到「天气」只被天气 agent 收到、「新闻」只被新闻 agent 收到，没人订阅的 topic 没人收到。",
+    "functions": [
+      {
+        "name": "weather_agent",
+        "line": 36,
+        "doc": ""
+      },
+      {
+        "name": "news_agent",
+        "line": 40,
+        "doc": ""
+      },
+      {
+        "name": "stock_agent",
+        "line": 44,
+        "doc": ""
+      },
+      {
+        "name": "main",
+        "line": 48,
+        "doc": ""
+      },
+      {
+        "name": "__init__",
+        "line": 20,
+        "doc": ""
+      },
+      {
+        "name": "subscribe",
+        "line": 23,
+        "doc": ""
+      },
+      {
+        "name": "publish",
+        "line": 29,
+        "doc": ""
+      }
+    ],
+    "imports": [],
+    "blanks": 0,
+    "topic": [
+      "2-12",
+      "2-12"
+    ],
+    "calls": [
+      "EventBus",
+      "bus.publish",
+      "main",
+      "print"
+    ]
+  },
+  {
+    "name": "031.py",
+    "header": "关卡 2-13 · 黑板模式/共享记忆（填空版）\n\n核心：多个 agent 不直接通信，都往一块「黑板」上读写；谁看到缺什么就补什么，逐步拼出完整答案。\n\n执行流程图（python3 031.py）：\n\n黑板(共享 dict) → 天气agent写weather → 交通agent写traffic → 美食agent读weather写food → 顾问agent读全部拼最终建议\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers-029-033.md（关卡 2-13 那节）。\n  3. 跑通：看到 4 个 agent 依次往黑板写东西，最后黑板拼出一条完整出行建议。",
+    "functions": [
+      {
+        "name": "weather_agent",
+        "line": 37,
+        "doc": ""
+      },
+      {
+        "name": "traffic_agent",
+        "line": 42,
+        "doc": ""
+      },
+      {
+        "name": "food_agent",
+        "line": 47,
+        "doc": ""
+      },
+      {
+        "name": "advisor_agent",
+        "line": 53,
+        "doc": ""
+      },
+      {
+        "name": "main",
+        "line": 61,
+        "doc": ""
+      },
+      {
+        "name": "__init__",
+        "line": 20,
+        "doc": ""
+      },
+      {
+        "name": "write",
+        "line": 23,
+        "doc": ""
+      },
+      {
+        "name": "read",
+        "line": 29,
+        "doc": ""
+      }
+    ],
+    "imports": [],
+    "blanks": 0,
+    "topic": [
+      "2-13",
+      "2-13"
+    ],
+    "calls": [
+      "Blackboard",
+      "agent",
+      "bb.data.items",
+      "bb.read",
+      "bb.write",
+      "main",
+      "print"
+    ]
+  },
+  {
+    "name": "032.py",
+    "header": "关卡 2-14 · 死锁与循环检测（填空版）\n\n核心：多 agent 系统两大「卡死」——死锁（互相等）和无限循环（停不下来）。\n用「等待图找环」检测死锁，用「状态去重 + 步数上限」检测循环。\n\n执行流程图（python3 032.py）：\n\n等待关系图 → DFS 三色标记找环 → 有环=死锁；\nagent 状态序列 → 检测重复状态 / 超步数 → 有=无限循环\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers-029-033.md（关卡 2-14 那节）。\n  3. 跑通：看到一组互相等待被判为「死锁」，一组原地打转的状态被判为「无限循环」。",
+    "functions": [
+      {
+        "name": "has_cycle",
+        "line": 20,
+        "doc": "waits_for = {agent: [它正在等待的 agent...]}\n用 DFS 三色标记法找环：0=白(未访问) 1=灰(访问中) 2=黑(已完成)。\n遇到「灰色」节点 = 绕回了正在访问的路径 = 有环 = 死锁。"
+      },
+      {
+        "name": "detect_loop",
+        "line": 45,
+        "doc": "states = agent 依次产生的状态列表。返回 (是否循环, 原因)。\n两种循环：① 状态重复出现（原地打转）② 步数超上限（一直不停）。"
+      },
+      {
+        "name": "main",
+        "line": 62,
+        "doc": ""
+      },
+      {
+        "name": "dfs",
+        "line": 26,
+        "doc": ""
+      }
+    ],
+    "imports": [],
+    "blanks": 0,
+    "topic": [
+      "2-14",
+      "2-14"
+    ],
+    "calls": [
+      "color.get",
+      "detect_loop",
+      "dfs",
+      "has_cycle",
+      "main",
+      "print",
+      "range",
+      "seen.add",
+      "set",
+      "waits_for.get"
+    ]
+  },
+  {
+    "name": "033.py",
+    "header": "关卡 2-15 · 跨 agent 分布式 tracing（填空版）\n\n核心：一条请求跨多个 agent 时，靠「trace_id + span_id + parent_span_id」把每个环节串成一条完整链路，\n出问题能定位到具体是哪个 agent 的哪一步。\n\n执行流程图（python3 033.py）：\n\n入口生成 trace_id → orchestrator 记根 span → 调用子 agent 时传递 trace_id + 父 span → 按 parent 拼成调用树\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers-029-033.md（关卡 2-15 那节）。\n  3. 跑通：看到一条 trace 里多个 span 按父子关系拼成调用树，还原完整链路。",
+    "functions": [
+      {
+        "name": "call_agent",
+        "line": 40,
+        "doc": "模拟「跨 agent 调用」：把 tracing 上下文（trace_id + 父 span）传给下一个 agent"
+      },
+      {
+        "name": "render_tree",
+        "line": 49,
+        "doc": "按 parent_id 把 span 拼成树形文本"
+      },
+      {
+        "name": "main",
+        "line": 63,
+        "doc": ""
+      },
+      {
+        "name": "__init__",
+        "line": 22,
+        "doc": ""
+      },
+      {
+        "name": "start_trace",
+        "line": 25,
+        "doc": ""
+      },
+      {
+        "name": "record_span",
+        "line": 32,
+        "doc": ""
+      },
+      {
+        "name": "walk",
+        "line": 55,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "uuid"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-15",
+      "2-15"
+    ],
+    "calls": [
+      "Tracer",
+      "call_agent",
+      "children.get",
+      "children.setdefault",
+      "children.setdefault(s['parent'], []).append",
+      "len",
+      "main",
+      "print",
+      "render_tree",
+      "tracer.record_span",
+      "tracer.start_trace",
+      "walk"
+    ]
+  },
+  {
+    "name": "034.py",
+    "header": "关卡 2-16 · 成本分摊与预算控制（填空版）\n\n核心：多 agent 里每个 agent 的 token 都要记账、按 agent 分摊成本，总成本超预算就止损停派。\n\n执行流程图（python3 034.py）：\n\n任务列表 → mock_run 模拟各 agent 消耗 token → cost_of 算钱 → allocate 记到各 agent 台账（成本分摊）\n        → 累计总成本 → 每步检查预算 → 超预算触发止损，不再派新任务\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers-034-037.md（关卡 2-16 那节）。\n  3. 跑通：看到每个 agent 的花费、各 agent 成本分摊台账、总成本，以及超预算自动止损。",
+    "functions": [
+      {
+        "name": "cost_of",
+        "line": 26,
+        "doc": "算一次调用的成本（元）。输入、输出单价不同，要分开乘，再除以 1_000_000。"
+      },
+      {
+        "name": "mock_run",
+        "line": 34,
+        "doc": "模拟一个 agent 执行任务，返回 (agent 名, prompt_tokens, completion_tokens)。\n用 work 的长度近似 token 数，离线可跑，不真调 LLM。"
+      },
+      {
+        "name": "allocate",
+        "line": 42,
+        "doc": "成本分摊：把本次 cost 累加到 agent_name 名下。"
+      },
+      {
+        "name": "main",
+        "line": 50,
+        "doc": ""
+      }
+    ],
+    "imports": [],
+    "blanks": 0,
+    "topic": [
+      "2-16",
+      "2-16"
+    ],
+    "calls": [
+      "allocate",
+      "cost_of",
+      "ledger.items",
+      "len",
+      "main",
+      "mock_run",
+      "print",
+      "sorted"
+    ]
+  },
+  {
+    "name": "035.py",
+    "header": "关卡 2-17 · 人机协同 human-in-the-loop（填空版）\n\n核心：多 agent 跑流程时，关键节点（发信、改库这类高风险动作）必须停下来等人确认，\n不能全自动一路到底。这就是 human-in-the-loop。\n\n执行流程图（python3 035.py）：\n\n步骤列表 → 逐个执行 → 遇到关键节点（critical）→ ask_human 停下来等人确认\n       → 人批准（approve）继续 → 人拒绝（reject）立即中止整个流程\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers-034-037.md（关卡 2-17 那节）。\n  3. 跑通：看到普通步骤自动执行，关键步骤停下来等确认，被拒绝时流程中止。",
+    "functions": [
+      {
+        "name": "is_critical",
+        "line": 23,
+        "doc": "判断这个步骤是不是「必须等人确认」的关键节点。\nstep 是 (步骤名, 是否关键) 的元组。"
+      },
+      {
+        "name": "ask_human",
+        "line": 32,
+        "doc": "模拟停下来等人确认：从 HUMAN_REPLIES 弹出一个回答。\n真实系统里，这里是发通知给人、挂起任务等人点「批准/拒绝」。"
+      },
+      {
+        "name": "run_step",
+        "line": 41,
+        "doc": "模拟执行一个普通步骤（离线，不真调工具）。"
+      },
+      {
+        "name": "main",
+        "line": 46,
+        "doc": ""
+      }
+    ],
+    "imports": [],
+    "blanks": 0,
+    "topic": [
+      "2-17",
+      "2-17"
+    ],
+    "calls": [
+      "ask_human",
+      "is_critical",
+      "main",
+      "print",
+      "run_step"
+    ]
+  },
+  {
+    "name": "036.py",
+    "header": "关卡 2-18 · 多 agent 评测（填空版）\n\n核心：单 agent 评测看「答对没」，多 agent 评测还要看「协作得怎么样」——\n任务完成率、共识效率、产出质量、成本，几个维度一起量化。\n\n执行流程图（python3 036.py）：\n\n若干次协作 run（模拟数据）→ completion_rate 算完成率 → efficiency_score 算效率\n      → overall 加权综合 → 汇总多次 run → 出平均协作质量报告\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers-034-037.md（关卡 2-18 那节）。\n  3. 跑通：看到每次协作 run 各维度得分，以及整体平均协作质量。",
+    "functions": [
+      {
+        "name": "completion_rate",
+        "line": 29,
+        "doc": "任务完成率：完成的子任务数 / 总子任务数（0~1）。"
+      },
+      {
+        "name": "efficiency_score",
+        "line": 37,
+        "doc": "效率分：达成共识用的轮数越少，协作越高效。用 1/轮数，轮数 1 得满分 1.0。"
+      },
+      {
+        "name": "quality_score",
+        "line": 45,
+        "doc": "产出质量分：直接读 run 的 quality（真实系统由 LLM-as-Judge 给出）。"
+      },
+      {
+        "name": "overall",
+        "line": 50,
+        "doc": "综合协作质量：完成率、效率、质量三维度加权求和。"
+      },
+      {
+        "name": "main",
+        "line": 58,
+        "doc": ""
+      }
+    ],
+    "imports": [],
+    "blanks": 0,
+    "topic": [
+      "2-18",
+      "2-18"
+    ],
+    "calls": [
+      "completion_rate",
+      "efficiency_score",
+      "enumerate",
+      "len",
+      "main",
+      "overall",
+      "print",
+      "quality_score",
+      "sum",
+      "totals.append"
+    ]
+  },
+  {
+    "name": "037.py",
+    "header": "关卡 2-19 · 多 agent 安全与权限隔离（填空版）\n\n核心：每个 agent 只给完成本职工作所需的最小权限（最小权限原则），\n调用工具前先过权限门，越权直接拒绝，敏感操作再加一道管理员门槛，全程留审计日志。\n\n执行流程图（python3 037.py）：\n\nagent 请求调工具 → 第一层 has_permission 查白名单 → 无权限 → 拒绝 + 审计日志\n             └→ 有权限 → 第二层 敏感操作检查 → 非管理员碰敏感工具 → 拒绝 + 审计日志\n                                    └→ 通过 → 执行\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers-034-037.md（关卡 2-19 那节）。\n  3. 跑通：看到有权限的 agent 正常执行，越权和敏感操作越权都被拒绝并留审计记录。",
+    "functions": [
+      {
+        "name": "has_permission",
+        "line": 36,
+        "doc": "查该 agent 的角色白名单里有没有 tool。"
+      },
+      {
+        "name": "execute",
+        "line": 44,
+        "doc": "执行工具调用，先过两道权限门。越权就拒绝并记审计日志。"
+      },
+      {
+        "name": "main",
+        "line": 62,
+        "doc": ""
+      }
+    ],
+    "imports": [],
+    "blanks": 0,
+    "topic": [
+      "2-19",
+      "2-19"
+    ],
+    "calls": [
+      "execute",
+      "has_permission",
+      "len",
+      "main",
+      "print"
+    ]
+  },
+  {
+    "name": "038.py",
+    "header": "关卡 3-1 · LangChain 重写（填空版）\n\n核心：把 1-10 的综合单 Agent（full_agent.py，约 160 行手写：工具 schema dict + 函数分发 dict\n+ 重试/超时/幂等/降级 + tracing + 手写 while 循环）用 LangChain 重写，看代码量缩到多少、\n少了哪些样板。\n\n执行流程图（python3 038.py）：\n\n用户问题\n  └─ agent_executor.invoke({\"input\": 问题})\n       └─ LangChain 内置 ReAct 循环（不用你手写 while）：\n            ├─ 带工具的 LLM 决定要不要调工具\n            ├─ 要 → 执行 @tool 装饰的函数 → 结果自动喂回\n            └─ 不要 → 返回最终答案\n\nLangChain 帮你省掉的样板：\n  1. TOOLS 的 JSON schema 声明  → @tool 装饰器自动从函数签名 + docstring 生成\n  2. TOOL_FUNCS 字典 + 按名分发 → 框架自动绑定\n  3. 手写 while 循环 / 消息组装 → AgentExecutor 内置\nLangChain 不替你写的（还得自己补）：\n  重试/超时/幂等/降级、tracing、防护 —— 这些「生产细节」框架不管。\n\n依赖（先装，装不上先看代码理解概念）：\n  pip3 install langchain langchain-openai\n\n规则：\n  1. 下面有 3 个空（填空 1 含 a/b 两处），填对了才能跑通。\n  2. 卡住看 answers-038-042.md（关卡 3-1 那节）。\n  3. 跑通：打印出「🎯 最终答案:」那一行。",
+    "functions": [
+      {
+        "name": "get_weather",
+        "line": 53,
+        "doc": "查询某个城市的天气。"
+      },
+      {
+        "name": "calc",
+        "line": 59,
+        "doc": "计算数学表达式，如 3*(5+2)。"
+      }
+    ],
+    "imports": [
+      "langchain.agents",
+      "langchain_core.prompts",
+      "langchain_core.tools",
+      "langchain_openai"
+    ],
+    "blanks": 6,
+    "topic": [
+      "3-1"
+    ],
+    "calls": [
+      "AgentExecutor",
+      "ChatOpenAI",
+      "ChatPromptTemplate.from_messages",
+      "MessagesPlaceholder",
+      "agent_executor.invoke",
+      "any",
+      "create_tool_calling_agent",
+      "eval",
+      "print",
+      "set",
+      "str"
+    ]
+  },
+  {
+    "name": "038_real.py",
+    "header": "038_real.py · 真实版 LangChain 工具调用 Agent（langchain 1.x 新 API）\n\n⚠️ 版本差异（重要）：\n  课程 038.py 用旧 API —— create_tool_calling_agent + AgentExecutor，\n  这个接口在 langchain 1.0 里被删除了。今天 pip install langchain 装到的是 1.x。\n  本文件用 1.x 的新 API —— create_agent（一行搞定，连 prompt/scratchpad 都不用手写）。\n  想跑课程原版 038.py，需要锁旧版：pip install \"langchain<1.0\" langchain-openai<1.0\n\n和 038.py 的三处「模拟 → 真实」：\n  1. get_weather 真调 Open-Meteo 免费天气 API（无需 key）\n  2. calc 用 ast 安全求值替代危险的 eval\n  3. llm 真调 DeepSeek —— 需要你自己的 key\n\n跑法：\n  source .venv/bin/activate   # 或 .venv/bin/python 038_real.py\n  python3 038_real.py         # 只改 api_key 一处",
+    "functions": [
+      {
+        "name": "get_weather",
+        "line": 43,
+        "doc": "查询某个城市的实时天气。参数 city 是中文城市名，如「北京」。"
+      },
+      {
+        "name": "_safe_eval",
+        "line": 79,
+        "doc": ""
+      },
+      {
+        "name": "calc",
+        "line": 94,
+        "doc": "计算数学表达式，如 3*(5+2)。支持 + - * / 和括号。"
+      }
+    ],
+    "imports": [
+      "ast",
+      "json",
+      "langchain.agents",
+      "langchain_core.tools",
+      "langchain_openai",
+      "operator",
+      "urllib.parse",
+      "urllib.request"
+    ],
+    "blanks": 0,
+    "topic": [],
+    "calls": [
+      "ChatOpenAI",
+      "ValueError",
+      "_OPS[type(node.op)]",
+      "_safe_eval",
+      "agent.invoke",
+      "ast.parse",
+      "codes.get",
+      "create_agent",
+      "geo.get",
+      "isinstance",
+      "json.load",
+      "print",
+      "str",
+      "type",
+      "urllib.parse.urlencode",
+      "urllib.request.urlopen"
+    ]
+  },
+  {
+    "name": "039.py",
+    "header": "关卡 3-2 · LangGraph 状态机（填空版）\n\n核心：把 2-1 层级式 Multi-Agent（orchestrator.py：拆任务→派 worker→汇总）重写成\nLangGraph 状态图版。手写版靠「函数调用链」组织控制流；LangGraph 把「状态 + 节点 + 边」\n显式建模成一张图，控制流变成图遍历。\n\n执行流程图（python3 039.py）：\n\nSTART\n  └─ planner 节点：LLM 拆成 3 个子任务 → 写回 state[\"subtasks\"]\n       └─ workers 节点：逐个执行子任务 → 写回 state[\"results\"]\n            └─ summarizer 节点：LLM 汇总 → 写回 state[\"final\"]\n                 └─ END\n\n三个核心概念（面试 30 秒）：\n  1. State（TypedDict）：图的「共享内存」，节点之间靠它传数据\n  2. Node（节点）：一个函数，输入 state、输出 state 的增量（状态转移）\n  3. Edge（边）：节点间的转移关系，graph 按边决定执行顺序\nLangGraph 比手写强在哪：状态显式、易加 checkpoint / 人审 / 并行分支（3-9 讲）。\n\n依赖（先装）：\n  pip3 install langgraph langchain-openai\n\n规则：\n  1. 下面有 3 个空（填空 2 含 a/b 两处），填对了才能跑通。\n  2. 卡住看 answers-038-042.md（关卡 3-2 那节）。\n  3. 跑通：打印出「📦 最终汇总：」那一行。",
+    "functions": [
+      {
+        "name": "_llm",
+        "line": 44,
+        "doc": ""
+      },
+      {
+        "name": "planner_node",
+        "line": 58,
+        "doc": ""
+      },
+      {
+        "name": "workers_node",
+        "line": 67,
+        "doc": ""
+      },
+      {
+        "name": "summarizer_node",
+        "line": 76,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "langchain_openai",
+      "langgraph.graph",
+      "typing"
+    ],
+    "blanks": 5,
+    "topic": [
+      "3-2"
+    ],
+    "calls": [
+      "'\\n'.join",
+      "ChatOpenAI",
+      "StateGraph",
+      "_llm",
+      "builder.add_edge",
+      "builder.add_node",
+      "builder.compile",
+      "graph.invoke",
+      "llm.invoke",
+      "plan.split",
+      "print",
+      "resp.content.strip",
+      "s.strip",
+      "s.strip('- ').strip"
+    ]
+  },
+  {
+    "name": "040.py",
+    "header": "关卡 3-3 · MCP 手写实现（填空版）\n\n核心：手写一个极简 MCP（Model Context Protocol）server + client，理解协议本质。\nMCP = 「JSON-RPC 2.0」+「三个方法」+「stdio 传输」。别被\"协议\"吓到，本质就是：\n客户端往 server 的 stdin 写一行 JSON 请求，server 从 stdout 回一行 JSON 响应。\n\n执行流程图（python3 040.py）：\n\nclient（主进程）\n  ├─ 启动 server 子进程（stdio 管道相连）\n  ├─ ① initialize  → 握手，拿 server 的协议版本和能力\n  ├─ ② tools/list  → 发现 server 暴露了哪些工具（name + JSON schema）\n  ├─ ③ tools/call  → 按名字 + 参数调用工具，拿回结果\n  └─ 打印全过程，看到真实往返的 JSON 报文\n\n三个核心方法（面试 30 秒）：\n  1. initialize    ：握手 + 版本协商（\"AI 的 USB 接口\"插上先握手）\n  2. tools/list    ：服务发现（客户端不知道 server 有啥工具，先问）\n  3. tools/call    ：真正执行（name + arguments → 结果）\nJSON-RPC 2.0 报文格式：请求 {jsonrpc, id, method, params}；响应 {jsonrpc, id, result|error}\n\n依赖：无第三方库，纯标准库（json + subprocess + sys）。\n\n规则：\n  1. 下面有 3 个空（填空 2 含 a/b 两处），填对了才能跑通。\n  2. 卡住看 answers-038-042.md（关卡 3-3 那节）。\n  3. 跑通：打印出 ③ tools/call 的天气结果。",
+    "functions": [
+      {
+        "name": "call_tool",
+        "line": 58,
+        "doc": "真正执行工具（这是 server 的核心逻辑）"
+      },
+      {
+        "name": "handle_request",
+        "line": 70,
+        "doc": "按 method 分发，返回 result（这就是 MCP 的「协议处理」）"
+      },
+      {
+        "name": "server_main",
+        "line": 105,
+        "doc": "server 主循环：从 stdin 逐行读 JSON 请求，往 stdout 逐行写 JSON 响应"
+      },
+      {
+        "name": "rpc",
+        "line": 122,
+        "doc": "发一个 JSON-RPC 请求，收一个响应"
+      },
+      {
+        "name": "main_client",
+        "line": 132,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "json",
+      "subprocess",
+      "sys"
+    ],
+    "blanks": 4,
+    "topic": [
+      "3-3"
+    ],
+    "calls": [
+      "________",
+      "________.items",
+      "any",
+      "eval",
+      "handle_request",
+      "json.dumps",
+      "json.loads",
+      "line.strip",
+      "main_client",
+      "print",
+      "proc.stdin.flush",
+      "proc.stdin.write",
+      "proc.stdout.readline",
+      "proc.terminate",
+      "req.get",
+      "rpc",
+      "server_main",
+      "set",
+      "str",
+      "subprocess.Popen"
+    ]
+  },
+  {
+    "name": "041.py",
+    "header": "关卡 3-4 · 评估 eval harness（填空版）\n\n核心：建一个小 eval 集 + LLM-as-Judge，跑出通过率。这是「agent 写完了怎么知道好不好」\n的工程答案——不能凭感觉，要量化。比 1-19 更进一步：固定 eval 集 + judge 结构化判定 + 通过率统计。\n\n执行流程图（python3 041.py）：\n\n[EVAL_SET 测试集]\n  └─ for 每个 (question, expected)：\n       ├─ agent(question)  → 调被测 agent/LLM 拿实际答案\n       ├─ judge(...)       → 用另一个 LLM 当「阅卷老师」判对错\n       └─ 记录 ✓/✗ + 答案\n  └─ 汇总：通过率 = 答对数 / 总数\n\n核心概念（面试 30 秒）：\n  1. eval 集 =（问题, 期望关键点）的列表，固定住，每次改代码后重跑对比\n  2. LLM-as-Judge = 用一个 LLM 判另一个 LLM 的答案，比字符串完全匹配宽容（语义对就给对）\n  3. 通过率 = 量化指标；没有它，改一版代码不知道变好还是变坏\n\n依赖：pip3 install openai\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers-038-042.md（关卡 3-4 那节）。\n  3. 跑通：打印出「通过率：N/5」那一行。",
+    "functions": [
+      {
+        "name": "agent",
+        "line": 47,
+        "doc": "被测的 agent：直接问 LLM"
+      },
+      {
+        "name": "judge",
+        "line": 57,
+        "doc": "LLM-as-Judge：判断答案是否正确，返回 True/False"
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 3,
+    "topic": [
+      "3-4"
+    ],
+    "calls": [
+      "OpenAI",
+      "agent",
+      "client.chat.completions.create",
+      "judge",
+      "len",
+      "print",
+      "resp.choices[0].message.content.strip"
+    ]
+  },
+  {
+    "name": "042.py",
+    "header": "关卡 3-5 · RAG 进阶（填空版）\n\n核心：三个进阶技巧——chunking（切块）、混合检索（dense 向量 + sparse BM25）、\nrerank（重排），并对比效果。1-3 的 RAG 只做了「整篇文档 → 向量检索」；\n这关补上「文档怎么切」「怎么既召得准又召得全」「召回后怎么再精排」。\n\n执行流程图（python3 042.py）：\n\n长文档\n  └─ chunking：按固定窗口 + 重叠切成若干块                       ← 填空 1\n       └─ 对每个 chunk 建索引：\n            ├─ dense 向量（字符 bigram 余弦）                    ← 填空 2\n            └─ sparse 词频（简化 BM25）\n       └─ 查询：dense 分 + sparse 分加权融合 → 混合检索          ← 填空 3\n            └─ rerank：对 top-k 用 LLM 重排，选最相关            ← 填空 4\n       └─ 对比打印：dense-only vs hybrid vs hybrid+rerank 的命中顺序\n\n三个核心概念（面试 30 秒）：\n  1. chunking：文档太长会「稀释」语义，切成小块（带重叠防切断），检索命中更精准\n  2. 混合检索 = dense（语义相近）+ sparse（关键词命中），互补：dense 懂意思，sparse 不漏专有名词\n  3. rerank：粗召回（快但糙）后用精排模型/LLM 对 top-k 重排，把最相关的顶上去\n本文件为了零依赖，dense 用「字符 bigram 余弦」手写、sparse 用「词频」手写，思路和生产一致，\n只是生产换 sentence-transformers / bge-reranker 这类真模型。\n\n依赖：无第三方库；rerank 用 DeepSeek（pip3 install openai，没 key 可改填空 4 用 rerank_local 纯本地版）。\n\n规则：\n  1. 下面有 4 个空，填对了才能跑通。\n  2. 卡住看 answers-038-042.md（关卡 3-5 那节）。\n  3. 跑通：打印出三种检索方式的命中顺序对比。",
+    "functions": [
+      {
+        "name": "chunk",
+        "line": 57,
+        "doc": ""
+      },
+      {
+        "name": "bigrams",
+        "line": 69,
+        "doc": ""
+      },
+      {
+        "name": "vec",
+        "line": 74,
+        "doc": ""
+      },
+      {
+        "name": "cosine",
+        "line": 78,
+        "doc": ""
+      },
+      {
+        "name": "tokenize",
+        "line": 94,
+        "doc": ""
+      },
+      {
+        "name": "bm25_score",
+        "line": 105,
+        "doc": ""
+      },
+      {
+        "name": "hybrid_score",
+        "line": 118,
+        "doc": ""
+      },
+      {
+        "name": "rerank_with_llm",
+        "line": 128,
+        "doc": ""
+      },
+      {
+        "name": "rerank_local",
+        "line": 148,
+        "doc": "本地精排：直接用混合分重排（不调 LLM 的降级版）"
+      }
+    ],
+    "imports": [
+      "collections",
+      "math",
+      "openai",
+      "re"
+    ],
+    "blanks": 4,
+    "topic": [
+      "3-5"
+    ],
+    "calls": [
+      "CHUNKS.index",
+      "Counter",
+      "OpenAI",
+      "a.values",
+      "b.values",
+      "bigrams",
+      "bm25_score",
+      "chunk",
+      "chunks.append",
+      "client.chat.completions.create",
+      "cosine",
+      "cterms.count",
+      "enumerate",
+      "float",
+      "hybrid_score",
+      "len",
+      "math.log",
+      "math.sqrt",
+      "print",
+      "range",
+      "ranked.append",
+      "ranked.sort",
+      "re.findall",
+      "re.sub",
+      "resp.choices[0].message.content.strip",
+      "scored.sort",
+      "scorer",
+      "set",
+      "sorted",
+      "sum",
+      "tokenize",
+      "vec"
+    ]
+  },
+  {
+    "name": "043.py",
+    "header": "关卡 3-8 · 检索质量评估（填空版）\n\n核心：用 recall@k / NDCG@k / MRR 三个指标，把「检索好不好」从感觉变成数字。\n\n执行流程图（python3 043.py）：\n\n  ① 构造小数据集：3 个查询，每个带「相关文档集合」+「检索返回列表」\n  ② 逐个指标计算：\n       ├─ recall_at_k  ← 填空 1（召回率：命中了多少相关文档）\n       ├─ ndcg_at_k    ← 填空 2（归一化折损累计增益：考虑排序位置）\n       └─ mrr          ← 填空 3（平均倒数排名：第一个相关文档在第几名）\n  ③ 打印每个查询的 recall/ndcg + 三个查询的平均 MRR\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers-043-044.md（关卡 3-8 那节）。\n  3. 跑通：看到每个查询的 recall@3 / ndcg@3 和整体 MRR。\n\n（本关零第三方依赖，纯标准库，直接 python3 043.py 就能跑。）",
+    "functions": [
+      {
+        "name": "recall_at_k",
+        "line": 33,
+        "doc": "召回率@k：检索返回的前 k 个里，命中了多少相关文档（占全部相关文档的比例）"
+      },
+      {
+        "name": "ndcg_at_k",
+        "line": 42,
+        "doc": "NDCG@k：考虑排序位置——相关文档排得越靠前，得分越高"
+      },
+      {
+        "name": "mrr",
+        "line": 57,
+        "doc": "MRR：每个查询「第一个相关文档」出现在第几名，取倒数后求平均"
+      },
+      {
+        "name": "dcg",
+        "line": 44,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "math"
+    ],
+    "blanks": 3,
+    "topic": [
+      "3-8",
+      "3-8"
+    ],
+    "calls": [
+      "dcg",
+      "enumerate",
+      "len",
+      "math.log2",
+      "mrr",
+      "ndcg_at_k",
+      "print",
+      "recall_at_k",
+      "scores.append",
+      "set",
+      "sorted",
+      "sum"
+    ]
+  },
+  {
+    "name": "044.py",
+    "header": "关卡 3-9 · LangGraph 进阶（填空版）\n\n核心：图状态用 checkpoint 持久化，人审节点用 interrupt() 暂停 + Command(resume=...) 恢复。\n\n依赖：pip install langgraph langgraph-checkpoint-sqlite\n（人审节点 interrupt 必须配合 checkpointer 才能用，两者是一对，这也是本关把它们放一起的原因）\n\n执行流程图（python3 044.py）：\n\n   第一次 graph.invoke(...) ──▶ generate 节点（产出草稿）\n        └─▶ review 节点 ──▶ interrupt() 暂停 ──▶ 图挂起，状态已落盘\n   第二次 graph.invoke(Command(resume=\"approve\")) ──▶ review 恢复 ──▶ 走到 END\n\n规则：\n  1. 下面有 3 个空，填对了才能跑通。\n  2. 卡住看 answers-043-044.md（关卡 3-9 那节）。\n  3. 跑通：先看到「图已暂停」，再看到「图已恢复并结束，approved=True」。",
+    "functions": [
+      {
+        "name": "generate_node",
+        "line": 34,
+        "doc": "节点 1：生成内容（简化版，不真调 LLM）"
+      },
+      {
+        "name": "review_node",
+        "line": 39,
+        "doc": "节点 2：人审 —— 在这里暂停图，等人类拍板"
+      }
+    ],
+    "imports": [
+      "langgraph.checkpoint.sqlite",
+      "langgraph.graph",
+      "langgraph.types",
+      "typing"
+    ],
+    "blanks": 3,
+    "topic": [
+      "3-9"
+    ],
+    "calls": [
+      "StateGraph",
+      "builder.add_edge",
+      "builder.add_node",
+      "builder.compile",
+      "graph.invoke",
+      "print"
+    ]
+  },
+  {
+    "name": "a2a.py",
+    "header": "关卡 2-5 · A2A 通信协议（完整版）\n\n核心：多 agent 要协作，得有个「统一语言」。A2A（Agent-to-Agent）协议\n就是定义 agent 之间通信的结构化 JSON 格式——每条消息都带 消息ID、发送方、\n接收方、类型、内容、时间戳，让不同 agent 能无歧义地理解彼此、校验彼此。\n\n执行流程图（python3 a2a.py）：\n\nagent A ── make_message 构造 JSON 消息 ──> agent B\n  └─ validate_message 校验格式 → handle_message 处理 → 回一条新消息 → A\n\n消息结构（JSON）：\n  { msg_id, sender, receiver, type, payload, timestamp }\n\n方法调用关系：\n  make_message() ──> 构造消息字典（uuid 生成 id + time 打时间戳）\n  validate_message() ──> 校验必填字段 + 类型合法性\n  handle_message() ──> 校验 → 按 type 处理 → 回信\n\n面试怎么讲（30 秒）：\n  \"多 agent 之间要用统一的结构化协议通信，A2A 就是定义消息的 JSON 格式——\n  sender/receiver/type/payload 等字段。好处是解耦、可校验、可追踪；\n  对比 MCP 是 agent 和工具之间的协议，A2A 是 agent 和 agent 之间的协议。\"",
+    "functions": [
+      {
+        "name": "make_message",
+        "line": 36,
+        "doc": "构造一条 A2A 消息"
+      },
+      {
+        "name": "validate_message",
+        "line": 48,
+        "doc": "校验消息是否符合 A2A 协议，返回 (是否合法, 原因)"
+      },
+      {
+        "name": "handle_message",
+        "line": 59,
+        "doc": "agent 收到消息：校验 → 处理 → 回信"
+      }
+    ],
+    "imports": [
+      "json",
+      "time",
+      "uuid"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-5"
+    ],
+    "calls": [
+      "handle_message",
+      "json.dumps",
+      "make_message",
+      "print",
+      "time.time",
+      "uuid.uuid4",
+      "validate_message"
+    ]
+  },
+  {
+    "name": "agent_eval.py",
+    "header": "关卡 1-19 · 单 agent 评测（完整版）\n\n核心：agent 写完了，怎么知道它好不好？不能凭感觉，要建一个 eval 集——\n一组（问题 + 标准答案），跑一遍，看通过率。这里用 LLM-as-Judge 判对错。\n\n执行流程图（python3 agent_eval.py）：\n\n[EVAL_SET 测试集]\n  └─ for 每个 (question, expected)：\n       ├─ 调 agent（LLM）得到实际答案\n       ├─ 调 judge（LLM）判断「实际答案是否满足 expected」\n       └─ 记录对/错\n  └─ 统计通过率 = 答对数 / 总数\n\n方法调用关系：\n  agent() ──> client.chat.completions.create（被测 agent）\n  judge() ──> client.chat.completions.create（LLM-as-Judge 判对错）\n\n面试怎么讲（30 秒）：\n  \"评测 agent 要建 eval 集，用 LLM-as-Judge 判对错，量化成通过率。\n  没有 eval，改一版代码不知道是变好了还是变坏了。\"",
+    "functions": [
+      {
+        "name": "agent",
+        "line": 43,
+        "doc": "被测的 agent：就是直接问 LLM"
+      },
+      {
+        "name": "judge",
+        "line": 53,
+        "doc": "LLM-as-Judge：判断答案是否正确"
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-19"
+    ],
+    "calls": [
+      "OpenAI",
+      "agent",
+      "client.chat.completions.create",
+      "judge",
+      "len",
+      "print",
+      "resp.choices[0].message.content.strip"
+    ]
+  },
+  {
+    "name": "async_tools.py",
+    "header": "关卡 1-18 · 异步并发调用（完整版）\n\n核心：agent 一次要调多个「互相独立」的工具（比如同时查 5 个城市的天气）。\n串行一个个等，总耗时 = 每个之和；并行一起发，总耗时 = 最慢的那个。\nasyncio + gather 就是干这个的。\n\n执行流程图（python3 async_tools.py）：\n\n[cities 列表]\n  ├─ 串行：for city → await get_weather(city)（一个等一个，耗时累加）\n  └─ 并行：asyncio.gather(*tasks)（一起发，耗时取最慢）\n  └─ 对比两次耗时\n\n方法调用关系：\n  get_weather()（async，模拟 1 秒延迟）\n  serial() ──> for + await get_weather（串行）\n  parallel() ──> asyncio.gather（并行）\n\n面试怎么讲（30 秒）：\n  \"多个独立工具要并行调，用 asyncio.gather 一起发，总耗时从「累加」降到「取最慢」。\n  注意：只适合没有依赖关系的调用，有依赖（B 要用 A 的结果）还是得串行。\"",
+    "functions": [
+      {
+        "name": "get_weather",
+        "line": 30,
+        "doc": "模拟查天气：每个城市要 1 秒（真实场景这里是调 API/LLM）"
+      },
+      {
+        "name": "serial",
+        "line": 36,
+        "doc": "串行：一个接一个"
+      },
+      {
+        "name": "parallel",
+        "line": 45,
+        "doc": "并行：asyncio.gather 一起发"
+      }
+    ],
+    "imports": [
+      "asyncio",
+      "time"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-18"
+    ],
+    "calls": [
+      "asyncio.gather",
+      "asyncio.run",
+      "asyncio.sleep",
+      "get_weather",
+      "parallel",
+      "print",
+      "results.append",
+      "serial",
+      "time.time"
+    ]
+  },
+  {
+    "name": "caching.py",
+    "header": "关卡 1-15 · 缓存策略（完整版）\n\n核心：相同请求不重复花钱。两种缓存：\n  结果缓存    —— 相同问题直接返回上次答案，不调 LLM（本地做）\n  prompt 缓存 —— 相同前缀的 prompt 命中服务端缓存，输入 token 打折（服务端做）\n\n执行流程图（python3 caching.py）：\n\n问题 → 查本地结果缓存\n  ├─ 命中 → 直接返回（0 成本）\n  └─ 未命中 → 调 LLM → 存进缓存 → 返回\n\n方法调用关系：\n  ask() ──> _cache 查/写（结果缓存）\n       └─ client.chat.completions.create（未命中才调）\n\n面试怎么讲（30 秒）：\n  \"缓存分两层：结果缓存（相同问题直接复用，本地做），prompt 缓存（相同前缀输入\n  token 打折，服务端做）。都能显著省钱，但结果缓存要注意失效——答案会过期的不能乱缓存。\"",
+    "functions": [
+      {
+        "name": "ask",
+        "line": 35,
+        "doc": "带结果缓存的提问：相同问题直接复用"
+      }
+    ],
+    "imports": [
+      "openai",
+      "time"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-15"
+    ],
+    "calls": [
+      "OpenAI",
+      "ask",
+      "client.chat.completions.create",
+      "print",
+      "time.time"
+    ]
+  },
+  {
+    "name": "collab.py",
+    "header": "关卡 2-3 · 协作式 Multi-Agent（对话/辩论）（完整版）\n\n核心：协作式（Collaborative）——两个 agent 多轮对话，互相补充/质疑，直到达成一致。\n和流水线的区别：流水线是单向流动，协作式是双向对话。\n\n执行流程图（python3 collab.py）：\n\n[话题]\n  └─ agent_a 提出方案\n       └─ 循环 N 轮：\n            ├─ agent_b 回应（补充/质疑）\n            ├─ agree() 判断是否一致？\n            │    ├─ 一致 → 结束\n            │    └─ 不一致 → agent_a 继续回应 → 下一轮\n  └─ 输出共识\n\n方法调用关系：\n  agent_a() ──> llm()（提方案/回应）\n  agent_b() ──> llm()（补充/质疑）\n  agree() ──> client.chat.completions.create（判是否一致）\n\n面试怎么讲（30 秒）：\n  \"协作式是多个 agent 多轮对话，互相质疑补充直到一致，适合「需要多角度、开放式」的\n  问题（方案评审、头脑风暴）。缺点是轮数不可控、成本高、可能陷入循环争论。\"",
+    "functions": [
+      {
+        "name": "llm",
+        "line": 37,
+        "doc": ""
+      },
+      {
+        "name": "agent_a",
+        "line": 46,
+        "doc": "agent A：提出方案"
+      },
+      {
+        "name": "agent_b",
+        "line": 51,
+        "doc": "agent B：回应 A，补充或质疑"
+      },
+      {
+        "name": "agree",
+        "line": 59,
+        "doc": "判断两位专家是否达成一致"
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-3"
+    ],
+    "calls": [
+      "OpenAI",
+      "agent_a",
+      "agent_b",
+      "agree",
+      "client.chat.completions.create",
+      "llm",
+      "print",
+      "range",
+      "resp.choices[0].message.content.strip"
+    ]
+  },
+  {
+    "name": "competitive.py",
+    "header": "关卡 2-4 · 竞争式 Multi-Agent（生成 + judge）（完整版）\n\n核心：竞争式（Competitive）——多个 agent 独立生成答案，一个 judge 评出最优。\n和协作式的区别：协作式是「一起讨论」，竞争式是「各做各的，最后挑最好的」。\n\n执行流程图（python3 competitive.py）：\n\n[任务]\n  ├─ candidate(风格1) ─┐\n  ├─ candidate(风格2) ─┼─ 独立生成（temperature 高，方案有差异）\n  └─ candidate(风格3) ─┘\n  └─ judge（LLM）评估所有方案 → 选出最优 + 理由\n\n方法调用关系：\n  candidate() ──> llm()（用不同风格生成方案）\n  judge() ──> llm()（评估选优）\n\n面试怎么讲（30 秒）：\n  \"竞争式是多个 agent 独立生成、judge 选最优，适合「答案有客观好坏」的场景\n  （写文案、解题、生成代码）。代价是并行生成 + 评判，成本是单 agent 的 N+1 倍。\"",
+    "functions": [
+      {
+        "name": "llm",
+        "line": 33,
+        "doc": ""
+      },
+      {
+        "name": "candidate",
+        "line": 42,
+        "doc": "候选 agent：用不同风格生成方案"
+      },
+      {
+        "name": "judge",
+        "line": 47,
+        "doc": "judge：评估所有方案，选最优"
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-4"
+    ],
+    "calls": [
+      "'\\n\\n'.join",
+      "OpenAI",
+      "candidate",
+      "client.chat.completions.create",
+      "enumerate",
+      "judge",
+      "llm",
+      "print",
+      "resp.choices[0].message.content.strip"
+    ]
+  },
+  {
+    "name": "concurrency.py",
+    "header": "关卡 2-8 · 并发与限流（完整版）\n\n核心：多 agent 并行派发能省时间（1-18），但不能无脑并发——并发太高会把 API 打爆\n或触发服务端限流。限流就是用 Semaphore 控制「同时进行的任务数」，比如最多 3 个一起跑。\n\n和 1-18 的区别：1-18 的 gather 是无脑并发（有多少并发多少），\n本关加 Semaphore 信号量，把并发上限卡住。\n\n执行流程图（python3 concurrency.py）：\n\n[10 个任务] → Semaphore(3) 限流 → 每批最多 3 个并发 → 全部完成\n\n方法调用关系：\n  worker() ──> async with sem（拿到通行证才执行）\n  main() ──> asyncio.gather（并发派发，但被 sem 卡住上限）\n\n面试怎么讲（30 秒）：\n  \"多 agent 并发要限流，用 asyncio.Semaphore 控制同时进行的数量，\n  防止并发过高打爆 API 或触发限流。1-18 的 gather 是无脑并发，这里加了信号量上限。\"",
+    "functions": [
+      {
+        "name": "worker",
+        "line": 28,
+        "doc": "模拟一个 worker：受信号量限制，最多 sem 个同时执行"
+      },
+      {
+        "name": "main",
+        "line": 35,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "asyncio",
+      "random"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-8"
+    ],
+    "calls": [
+      "asyncio.Semaphore",
+      "asyncio.gather",
+      "asyncio.run",
+      "asyncio.sleep",
+      "main",
+      "print",
+      "random.uniform",
+      "range",
+      "worker"
+    ]
+  },
+  {
+    "name": "ctx_window.py",
+    "header": "关卡 1-11 · 上下文窗口管理（完整版）\n\n核心：LLM 一次能看进去的内容有上限（上下文窗口，deepseek-chat 是 64K token）。\n对话越聊越长，迟早超窗。超窗的后果：报错 / 丢信息 / 变贵。\n管理策略：截断、摘要、滑动窗口、RAG 召回。这关演示「摘要」策略。\n\n执行流程图（python3 ctx_window.py）：\n\n[长对话 messages]（越来越长）\n  └─ estimate_tokens(messages) 估算总 token\n       ├─ < MAX_TOKENS：直接用，不处理\n       └─ ≥ MAX_TOKENS：\n            ├─ 把「最旧的若干轮」抽出来（更早的）\n            ├─ summarize() 用 LLM 压成一段摘要\n            ├─ 用摘要替换那些旧消息（腾出空间）\n            └─ 得到压缩后的 messages = system + 摘要 + 最近几条\n\n四种策略（面试会问）：\n  截断 truncation  —— 直接砍掉最早的，简单但丢信息\n  摘要 summarization —— LLM 把早期对话压成一段，留信息丢细节（本关演示）\n  滑动窗口 sliding —— 只保留最近 N 条，中间的全丢\n  RAG 召回          —— 历史全存向量库，按需检索回来（最省窗口，但要额外基建）\n\n方法调用关系：\n  manage_window() ──> estimate_tokens()（估 token）\n       └─ summarize() ──> client.chat.completions.create（LLM 摘要）\n\n面试怎么讲（30 秒）：\n  \"长对话会撞上下文窗口上限。管理策略有四种：截断、摘要、滑动窗口、RAG 召回，\n  工程上常组合用——近期对话用原文（滑动窗口），远期记忆摘要或存向量库按需召回。\"",
+    "functions": [
+      {
+        "name": "estimate_tokens",
+        "line": 46,
+        "doc": "粗估 token：中文 1 字≈1 token，这里直接用字符数近似（生产用 tiktoken 更准）"
+      },
+      {
+        "name": "summarize",
+        "line": 54,
+        "doc": "用 LLM 把早期对话压成一段摘要"
+      },
+      {
+        "name": "manage_window",
+        "line": 68,
+        "doc": "超窗时：把最旧的对话摘要掉，保留 system + 摘要 + 最近几条"
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-11"
+    ],
+    "calls": [
+      "'\\n'.join",
+      "OpenAI",
+      "client.chat.completions.create",
+      "estimate_tokens",
+      "len",
+      "manage_window",
+      "messages.append",
+      "print",
+      "range",
+      "summarize"
+    ]
+  },
+  {
+    "name": "dialogue_fsm.py",
+    "header": "关卡 1-17 · 对话状态机（完整版）\n\n核心：多轮对话如果让 LLM 自由发挥，容易跑偏（漏问、重复问、跳步）。\n对话状态机（FSM）用一个「状态」变量管住流程：每个状态只问一个明确的问题，\n答完才转移到下一个状态，不跑偏、不漏项。\n\n执行流程图（python3 dialogue_fsm.py）：\n\nstate = \"menu\"（初始状态）\n  └─ 循环直到 done：\n       ├─ 打印当前状态的问题（PROMPTS[state]）\n       ├─ 读用户输入\n       ├─ 用 LLM 提取当前状态需要的信息（extract）\n       ├─ 记录到 order\n       └─ state = NEXT_STATE[state]（转移到下一状态）\n\n方法调用关系：\n  extract() ──> client.chat.completions.create（LLM 提取信息）\n  主循环 ──> 用 NEXT_STATE 字典做状态转移\n\n面试怎么讲（30 秒）：\n  \"多轮对话用状态机管流程，每个状态一个明确意图，答完才转移。\n  好处是不跑偏、不漏问，坏处是流程写死、灵活度低。适合订餐/挂号这类固定流程，\n  灵活场景要混合 LLM 自由对话 + 状态约束。\"",
+    "functions": [
+      {
+        "name": "extract",
+        "line": 53,
+        "doc": "用 LLM 从用户输入里提取当前状态需要的信息"
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-17"
+    ],
+    "calls": [
+      "OpenAI",
+      "client.chat.completions.create",
+      "extract",
+      "input",
+      "input('你: ').strip",
+      "order.items",
+      "print",
+      "resp.choices[0].message.content.strip",
+      "user.lower"
+    ]
+  },
+  {
+    "name": "fault_tolerance.py",
+    "header": "关卡 2-7 · 容错与降级（完整版）\n\n核心：多 agent 里某个 worker 挂了，整体不能崩。三种手段：\n  1. try/except 捕获单个 worker 的异常（本关）\n  2. 降级：失败的任务给个兜底结果\n  3. 超时：卡死的 worker 强制中断（1-8 讲过）\n\n和 1-8 的区别：1-8 是「单个工具」的四层防护，本关是「整个 worker」级别的容错——\n一个 worker 挂掉，不影响其他 worker，orchestrator 照样汇总出结果。\n\n执行流程图（python3 fault_tolerance.py）：\n\n[任务列表]\n  └─ for 每个任务：\n       ├─ try worker(task)\n       │    ├─ 成功 → 记录结果\n       │    └─ 失败 → 捕获异常 → 记录「失败」+ 降级兜底\n  └─ 汇总：成功的结果 + 失败的降级标记，整体不崩\n\n方法调用关系：\n  worker() ──> 模拟执行（30% 概率抛异常）\n  run_with_fallback() ──> try/except 包住 worker，失败降级\n\n面试怎么讲（30 秒）：\n  \"多 agent 容错靠三层：单个 worker 用 try/except 隔离异常，失败用降级兜底，\n  卡死用超时。核心原则是「一个 worker 挂掉，不影响其他 worker，整体照常出结果」。\"",
+    "functions": [
+      {
+        "name": "worker",
+        "line": 34,
+        "doc": "模拟一个可能失败的 worker"
+      },
+      {
+        "name": "run_with_fallback",
+        "line": 41,
+        "doc": "带容错的执行：失败就降级兜底，返回 (结果, 状态)"
+      }
+    ],
+    "imports": [
+      "random"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-7"
+    ],
+    "calls": [
+      "RuntimeError",
+      "len",
+      "print",
+      "random.random",
+      "results.append",
+      "run_with_fallback",
+      "sum",
+      "worker"
+    ]
+  },
+  {
+    "name": "full_agent.py",
+    "header": "关卡 1-10 · 综合单 Agent（完整版）\n\n核心：把前面 9 关串成一个「生产级单 agent」：\n  1-2 工具调用    —— 多工具白名单（get_weather + calc）\n  1-4 短期记忆    —— 多轮 messages 累积\n  1-8 四层防护    —— 重试/超时/幂等/降级（call_weather）\n  1-9 tracing     —— 每步留痕 + 耗时 + token\n\n执行流程图（python3 full_agent.py）：\n\n用户提问 → 进入对话循环\n  for step in 循环：\n    ① 调 LLM（带工具定义 + 记 trace）\n    ② 有工具调用？\n        ├─ 从 TOOL_FUNCS 取出「包了四层防护」的工具执行\n        └─ 结果喂回 messages，继续\n    ③ 无工具调用 → 输出最终答案，回到「等你提问」\n  （多轮：短期记忆 messages 一直累积，下一轮还记得上一轮）\n\n方法调用关系：\n  run_agent() ──> client.chat.completions.create（LLM）\n       ├─ call_weather()（四层防护：重试/超时/幂等/降级）\n       ├─ calc()（计算器）\n       └─ record()（tracing）\n\n面试怎么讲（30 秒）：\n  \"一个生产级单 agent = 工具调用 + 记忆 + 防护 + 可观测。我手写过：多工具白名单、\n  多轮短期记忆、工具四层防护、每步 tracing。这是 multi-agent 里每个 worker 的地基。\"",
+    "functions": [
+      {
+        "name": "get_weather_raw",
+        "line": 45,
+        "doc": ""
+      },
+      {
+        "name": "call_weather",
+        "line": 58,
+        "doc": ""
+      },
+      {
+        "name": "calc",
+        "line": 78,
+        "doc": ""
+      },
+      {
+        "name": "record",
+        "line": 99,
+        "doc": ""
+      },
+      {
+        "name": "run_agent",
+        "line": 114,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "concurrent.futures",
+      "json",
+      "openai",
+      "random",
+      "time"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-10"
+    ],
+    "calls": [
+      "ConnectionError",
+      "OpenAI",
+      "TOOL_FUNCS[name]",
+      "ThreadPoolExecutor",
+      "_executor.submit",
+      "any",
+      "client.chat.completions.create",
+      "eval",
+      "fut.result",
+      "input",
+      "input('你: ').strip",
+      "json.loads",
+      "len",
+      "messages.append",
+      "print",
+      "random.random",
+      "range",
+      "record",
+      "round",
+      "run_agent",
+      "set",
+      "str",
+      "time.sleep",
+      "time.time",
+      "trace.append",
+      "user.lower"
+    ]
+  },
+  {
+    "name": "multi_agent_project.py",
+    "header": "关卡 2-10 · Multi-Agent 综合项目（完整版）\n\n核心：把 Phase 2 学的东西串起来——层级式拆任务 + asyncio 并发 + 容错降级，\n跑通一个完整的多 agent 协作任务。\n\n场景：orchestrator 把「写一份北京旅游攻略」拆成 3 个子任务，\n3 个 worker 并发执行，其中某个可能失败（容错降级），最后汇总成完整攻略。\n\n执行流程图（python3 multi_agent_project.py）：\n\n[大任务「北京旅游攻略」]\n  ├─ worker1（美食）┐\n  ├─ worker2（景点）├─ asyncio.gather 并发执行\n  └─ worker3（交通）┘\n  └─ safe_worker 容错：谁失败就降级标记\n  └─ 汇总打印完整攻略\n\n方法调用关系：\n  worker() ──> aclient（AsyncOpenAI 调 LLM）\n  safe_worker() ──> try/except 包住 worker（容错）\n  main() ──> asyncio.gather（并发）\n\n面试怎么讲（30 秒）：\n  \"综合项目把层级式拆任务、asyncio 并发、容错降级串起来，\n  演示了一个完整的多 agent 协作流程：拆解 → 并行执行 → 容错 → 汇总。\"",
+    "functions": [
+      {
+        "name": "worker",
+        "line": 39,
+        "doc": "worker：执行单个子任务（调 LLM）"
+      },
+      {
+        "name": "safe_worker",
+        "line": 49,
+        "doc": "带容错的 worker：失败就降级标记，不影响其他 worker"
+      },
+      {
+        "name": "main",
+        "line": 57,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "asyncio",
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-10"
+    ],
+    "calls": [
+      "AsyncOpenAI",
+      "aclient.chat.completions.create",
+      "asyncio.gather",
+      "asyncio.run",
+      "enumerate",
+      "main",
+      "print",
+      "resp.choices[0].message.content.strip",
+      "safe_worker",
+      "worker"
+    ]
+  },
+  {
+    "name": "orchestrator.py",
+    "header": "关卡 2-1 · 层级式 Multi-Agent：Orchestrator + Workers（完整版）\n\n核心：层级式（Hierarchical）——一个主 agent（orchestrator）把大任务拆成子任务，\n分派给多个 worker 各自执行，最后汇总。主 agent 管「拆」和「合」，worker 管「干」。\n\n执行流程图（python3 orchestrator.py）：\n\n[大任务]\n  └─ orchestrator_plan（LLM）拆成 3 个子任务\n       ├─ worker(子任务1) ─┐\n       ├─ worker(子任务2) ─┼─ 各干各的（互相独立）\n       └─ worker(子任务3) ─┘\n  └─ orchestrator_summarize（LLM）汇总 → 最终答案\n\n方法调用关系：\n  orchestrator_plan() ──> llm()（拆任务）\n  worker() ──> llm()（执行单个子任务）\n  orchestrator_summarize() ──> llm()（汇总）\n\n面试怎么讲（30 秒）：\n  \"层级式是主 agent 拆任务、分派给 worker、再汇总。控制流清晰、易扩展，\n  适合「任务可分解、子任务独立」的场景。缺点是 orchestrator 是单点，拆错了全错。\"",
+    "functions": [
+      {
+        "name": "llm",
+        "line": 35,
+        "doc": ""
+      },
+      {
+        "name": "orchestrator_plan",
+        "line": 44,
+        "doc": "主 agent：把大任务拆成子任务"
+      },
+      {
+        "name": "worker",
+        "line": 52,
+        "doc": "worker：执行单个子任务"
+      },
+      {
+        "name": "orchestrator_summarize",
+        "line": 57,
+        "doc": "主 agent：汇总所有 worker 的结果"
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-1"
+    ],
+    "calls": [
+      "'\\n'.join",
+      "OpenAI",
+      "client.chat.completions.create",
+      "enumerate",
+      "line.strip",
+      "line.strip('- ').strip",
+      "llm",
+      "orchestrator_plan",
+      "orchestrator_summarize",
+      "plan.split",
+      "print",
+      "resp.choices[0].message.content.strip",
+      "worker"
+    ]
+  },
+  {
+    "name": "pipeline.py",
+    "header": "关卡 2-2 · 流水线式 Multi-Agent（完整版）\n\n核心：流水线式（Pipeline）——多个 agent 串联，上一个的输出是下一个的输入。\n像工厂流水线：研究 → 写作 → 审核。\n和层级式的区别：层级式是「控制流」（主 agent 派活），流水线是「数据流」（结果一路流下去）。\n\n执行流程图（python3 pipeline.py）：\n\n[主题]\n  └─ research（研究 agent 收集素材）\n       └─ write（写作 agent 基于素材写文章）\n            └─ review（审核 agent 挑毛病并给改进版）\n                 └─ 最终成品\n\n方法调用关系：\n  research() ──> llm()（收集素材）\n  write() ──> llm()（基于素材写，material 传进来）\n  review() ──> llm()（审核改进）\n\n面试怎么讲（30 秒）：\n  \"流水线式是 agent 串联，上一个输出是下一个输入，适合「有固定工序」的任务\n  （研究→写作→审核）。优点是简单清晰，缺点是流水线一断全断、不能并行。\"",
+    "functions": [
+      {
+        "name": "llm",
+        "line": 35,
+        "doc": ""
+      },
+      {
+        "name": "research",
+        "line": 44,
+        "doc": "阶段1：研究，收集素材"
+      },
+      {
+        "name": "write",
+        "line": 49,
+        "doc": "阶段2：写作，基于素材写文章"
+      },
+      {
+        "name": "review",
+        "line": 57,
+        "doc": "阶段3：审核，挑毛病并给改进版"
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-2"
+    ],
+    "calls": [
+      "OpenAI",
+      "client.chat.completions.create",
+      "llm",
+      "print",
+      "research",
+      "resp.choices[0].message.content.strip",
+      "review",
+      "write"
+    ]
+  },
+  {
+    "name": "plan_agent.py",
+    "header": "关卡 1-6 · Plan-and-Execute（完整版）\n\n核心：把「规划」和「执行」拆成两个阶段。\n  1. Planner：让 LLM 先一次性输出完整计划（步骤列表，结构化 JSON）\n  2. Executor：按顺序逐步执行，每步该调工具就调工具，结果累积进上下文\n\n执行流程图（python3 plan_agent.py）：\n\n【规划】planner(任务) ──> LLM 输出 JSON 计划 {\"steps\":[{step,desc,tool,args},...]}\n【执行】for step in plan[\"steps\"]:\n   ├─ 有 tool  → 调真实函数 get_weather(...)\n   └─ 无 tool  → LLM 根据「已完成结果」写该步内容\n【汇总】把所有步骤结果拼成最终答案\n\n和 ReAct（1-4/1-5）的本质区别：\n  ReAct：想一步 → 做一步 → 看结果 → 再想下一步（思考/行动每步交错、每步重新决策）\n  Plan-and-Execute：先想好全部步骤 → 再机械推进执行（规划一次、执行分离）\n\n方法调用关系：\n  planner() ──> client.chat.completions.create（输出 JSON 计划）\n  executor() ──> for 循环遍历 steps\n       ├─ TOOL_FUNCS[name](**args)  → 工具步骤\n       └─ client.chat.completions.create  → 无工具步骤\n\n面试怎么讲（30 秒）：\n  \"ReAct 每步都重新推理下一步，灵活但慢、token 多；Plan-and-Execute 先出完整计划再执行，\n  适合步骤多、目标明确的任务，省 token、方便看到全局，但计划一旦定下就不易中途调整。\"",
+    "functions": [
+      {
+        "name": "get_weather",
+        "line": 41,
+        "doc": "查询天气（模拟）"
+      },
+      {
+        "name": "planner",
+        "line": 79,
+        "doc": "阶段 1：让 LLM 一次性输出完整计划"
+      },
+      {
+        "name": "executor",
+        "line": 96,
+        "doc": "阶段 2：按顺序执行每个步骤"
+      }
+    ],
+    "imports": [
+      "json",
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-6"
+    ],
+    "calls": [
+      "'\\n'.join",
+      "OpenAI",
+      "client.chat.completions.create",
+      "executor",
+      "fn",
+      "json.loads",
+      "planner",
+      "print",
+      "raw.strip",
+      "raw.strip().removeprefix",
+      "raw.strip().removeprefix('```json').removeprefix",
+      "raw.strip().removeprefix('```json').removeprefix('```').removesuffix",
+      "raw.strip().removeprefix('```json').removeprefix('```').removesuffix('```').strip",
+      "results.append",
+      "s.get"
+    ]
+  },
+  {
+    "name": "prompt_eng.py",
+    "header": "关卡 1-13 · Prompt 工程（完整版）\n\n核心：同一个任务，换个问法，结果天差地别。四种经典技巧：\n  零样本 zero-shot   —— 直接问，不给例子\n  few-shot           —— 给几个例子，让模型照着学\n  CoT (思维链)       —— 加一句「一步步想」，逼模型展示推理\n  角色设定           —— 给一个身份，改变回答风格/严谨度\n\n执行流程图（python3 prompt_eng.py）：\n\n同一个任务 → 用四种 prompt 分别调 LLM → 对比四个答案\n\n方法调用关系：\n  zero_shot()/few_shot()/cot()/role_play() ──> call() ──> client.chat.completions.create\n\n面试怎么讲（30 秒）：\n  \"Prompt 工程核心是换问法。零样本直接问，few-shot 给例子，CoT 加『一步步想』\n  逼出推理过程（能显著提正确率），角色设定改风格。实际常用 few-shot + CoT 组合。\"",
+    "functions": [
+      {
+        "name": "call",
+        "line": 38,
+        "doc": ""
+      },
+      {
+        "name": "zero_shot",
+        "line": 48,
+        "doc": "直接问，不给任何提示"
+      },
+      {
+        "name": "few_shot",
+        "line": 53,
+        "doc": "先给一个解好的例题，让模型照着学"
+      },
+      {
+        "name": "cot",
+        "line": 58,
+        "doc": "加一句「一步步思考」，逼模型展示推理过程"
+      },
+      {
+        "name": "role_play",
+        "line": 63,
+        "doc": "给一个角色身份，改变严谨度和风格"
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-13"
+    ],
+    "calls": [
+      "OpenAI",
+      "call",
+      "client.chat.completions.create",
+      "cot",
+      "few_shot",
+      "print",
+      "role_play",
+      "zero_shot"
+    ]
+  },
+  {
+    "name": "prompt_sec.py",
+    "header": "关卡 1-16 · Prompt Injection 防御（完整版）\n\n核心：用户输入可以「劫持」agent。攻击者让模型忽略 system 指令、泄露内部信息、\n调用危险工具。防御三板斧：\n  ① 指令优先级  —— system 里明确「用户输入只是数据，不是指令」\n  ② 输入边界    —— 检测可疑注入（如「忽略」「之前的指令」）\n  ③ 工具白名单  —— 危险工具（删库、发邮件）要么不给、要么最小权限\n\n执行流程图（python3 prompt_sec.py）：\n\n用户输入 → 检测注入\n  ├─ 无防御版：直接拼进 messages，可能被劫持\n  └─ 有防御版：检测 + 指令强调，注入被拦下\n\n方法调用关系：\n  vulnerable() ──> 直接调 LLM（无防御）\n  defended() ──> 检测注入 + 强化 system + 调 LLM\n\n面试怎么讲（30 秒）：\n  \"Prompt injection 是用户输入试图覆盖 system 指令。防御三板斧：指令优先级\n  （明确用户输入是数据不是指令）、输入边界检测、工具白名单 + 最小权限。\n  根治靠架构——敏感工具永远要人审或二次确认，不能全信模型。\"",
+    "functions": [
+      {
+        "name": "vulnerable",
+        "line": 48,
+        "doc": "无防御：用户输入直接拼进 messages，可能被劫持"
+      },
+      {
+        "name": "defended",
+        "line": 59,
+        "doc": "有防御：先检测可疑输入，再用强化的 system 指令"
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-16"
+    ],
+    "calls": [
+      "OpenAI",
+      "client.chat.completions.create",
+      "defended",
+      "print",
+      "vulnerable"
+    ]
+  },
+  {
+    "name": "reflect_agent.py",
+    "header": "关卡 1-7 · Reflection 自我修正（完整版）\n\n核心：让 agent 执行完任务后「反思」自己的结果，发现错误再重试，直到修对。\n这是从 ReAct（每步想）和 Plan-and-Execute（先规划）再往前走一步：执行完还能「回头看」。\n\n执行流程图（python3 reflect_agent.py）：\n\n【第一轮】solve(题目) ──────────> LLM 直接作答 → answer_1\n【反思】  reflect(题目, answer_1) ─> LLM 当批改老师挑错 → feedback\n【第二轮】solve(题目, feedback) ─> LLM 带着反思意见重做 → answer_2\n【对比】  打印两轮答案，看第二遍是否修对了\n\n和 ReAct / Plan 的区别：\n  ReAct：想一步 → 做一步 → 看结果（过程驱动）\n  Plan-and-Execute：先规划 → 再执行（全局驱动）\n  Reflection：执行 → 反思 → 重试（结果驱动，回头看）\n\n方法调用关系：\n  solve() ──> client.chat.completions.create（作答，可带反思意见）\n  reflect() ──> client.chat.completions.create（批改，找错）\n\n面试怎么讲（30 秒）：\n  \"Reflection 是让 agent 在产出结果后，把结果再喂给 LLM 让它自我批判、找错，\n  带着批判意见重跑一遍。本质是用 LLM 当自己的 critic，能显著降低简单错误。\n  这是 Reflexion 框架的核心思想。\"",
+    "functions": [
+      {
+        "name": "solve",
+        "line": 42,
+        "doc": "让 LLM 解一道题。feedback 是上一轮反思的意见（可选）"
+      },
+      {
+        "name": "reflect",
+        "line": 58,
+        "doc": "让 LLM 反思自己的答案，找出错误"
+      }
+    ],
+    "imports": [
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-7"
+    ],
+    "calls": [
+      "OpenAI",
+      "client.chat.completions.create",
+      "messages.append",
+      "print",
+      "reflect",
+      "solve"
+    ]
+  },
+  {
+    "name": "robust_tools.py",
+    "header": "关卡 1-8 · 工具设计进阶（完整版）\n\n核心：真实世界的工具调用不可靠——会超时、会偶发失败、会重复提交。\n生产级 agent 要给工具包四层防护：\n  1. 重试 retry       —— 偶发失败自动重试几次\n  2. 超时 timeout     —— 工具卡住不无限等\n  3. 幂等 idempotent  —— 重复请求不重复生效\n  4. 降级 fallback    —— 彻底失败给个兜底，保证可用\n\n执行流程图（python3 robust_tools.py）：\n\ncall_weather(城市)\n  ① 幂等：查缓存，命中直接返回（不重复打后端）\n  ② 重试循环（最多 3 次）：\n       每次调 get_weather 套超时（超 2 秒判失败）\n       失败/超时 → 退避 → 重试\n  ③ 降级：3 次都失败 → 返回兜底结果\n\n和前面关卡的区别：\n  1-2 的工具 = 裸函数，失败就报错，agent 就崩\n  1-8 的工具 = 包了四层防护，失败自动恢复\n\n方法调用关系：\n  call_weather() ──> _executor.submit(get_weather) ──> fut.result(timeout=...)\n       ├─ _cache 查/写（幂等）\n       └─ 循环重试（retry）+ 兜底返回（fallback）\n\n面试怎么讲（30 秒）：\n  \"生产级工具不是裸函数，要包四层：重试扛偶发故障、超时防挂死、幂等防重复副作用、\n  降级保证服务可用。这是 agent 稳定性的基础。\"",
+    "functions": [
+      {
+        "name": "get_weather",
+        "line": 43,
+        "doc": ""
+      },
+      {
+        "name": "call_weather",
+        "line": 57,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "concurrent.futures",
+      "random",
+      "time"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-8"
+    ],
+    "calls": [
+      "ConnectionError",
+      "ThreadPoolExecutor",
+      "_executor.submit",
+      "call_weather",
+      "fut.result",
+      "print",
+      "random.random",
+      "range",
+      "time.sleep"
+    ]
+  },
+  {
+    "name": "robust_tools_real.py",
+    "header": "关卡 1-8 进阶 · 接真实 API 的版本（对比模拟版 008.py）\n\n先装依赖（如果 .venv 里没有）：\n    .venv/bin/pip install requests\n\n和模拟版的关键区别：\n  模拟版 get_weather = 假函数，random 造失败、sleep 造卡死、线程池套超时\n  真实版 get_weather_real = 真请求 Open-Meteo（免费天气接口，无需 key），\n                            超时用 requests 自带的 timeout 参数\n\n  为什么真实 HTTP 不用线程池套超时？\n  因为 requests.get(timeout=2) 内部已经管好了「连接超时 + 读取超时」，\n  你直接传 timeout 就行。线程池那套是「任意阻塞函数」的通用解法，HTTP 有更省的。\n\n执行流程图（python3 robust_tools_real.py）：\n\ncall_weather(北京)\n  ① 幂等：查缓存，命中直接返回\n  ② 重试循环：requests.get(timeout=2) 真实打 Open-Meteo\n       超时 / 报错 → 退避 → 重试\n  ③ 降级：3 次都失败 → 返回兜底",
+    "functions": [
+      {
+        "name": "get_weather_real",
+        "line": 34,
+        "doc": ""
+      },
+      {
+        "name": "call_weather",
+        "line": 54,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "random",
+      "requests",
+      "time"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-8"
+    ],
+    "calls": [
+      "call_weather",
+      "get_weather_real",
+      "print",
+      "random.random",
+      "range",
+      "requests.exceptions.ConnectionError",
+      "requests.exceptions.Timeout",
+      "requests.get",
+      "resp.json",
+      "resp.raise_for_status",
+      "time.sleep"
+    ]
+  },
+  {
+    "name": "shared_state.py",
+    "header": "关卡 2-6 · 状态与上下文共享（完整版）\n\n核心：多个 agent 协作，中间结果怎么共享？三种方式：\n  1. 消息传递（A2A，2-5 讲的）—— agent 之间发消息\n  2. 共享状态（本关）—— 所有 agent 读写同一个 state 对象\n  3. 黑板模式（2-13 会讲）—— 一个共享的「黑板」，大家往上写\n\n本关演示「共享状态」：一个全局 state 字典，多个 worker 读写。\n\n执行流程图（python3 shared_state.py）：\n\n[共享 state 字典]\n  ├─ worker_a 写入 state[\"weather\"]\n  ├─ worker_b 读 state[\"weather\"] + 写 state[\"summary\"]\n  └─ worker_c 读 state，产出最终答案\n\n方法调用关系：\n  worker_a/b/c ──> 用 lock 加锁读写共享 state\n\n面试怎么讲（30 秒）：\n  \"多 agent 共享中间结果，常见三种：消息传递、共享状态、黑板模式。\n  共享状态最简单——一个全局 dict 大家都读写，但要小心并发写冲突，所以要加锁。\"",
+    "functions": [
+      {
+        "name": "worker_a",
+        "line": 35,
+        "doc": "worker A：查天气，写入共享状态"
+      },
+      {
+        "name": "worker_b",
+        "line": 42,
+        "doc": "worker B：读天气，写总结（依赖 A 的结果）"
+      },
+      {
+        "name": "worker_c",
+        "line": 50,
+        "doc": "worker C：读所有状态，产出最终答案"
+      }
+    ],
+    "imports": [
+      "threading"
+    ],
+    "blanks": 0,
+    "topic": [
+      "2-6"
+    ],
+    "calls": [
+      "print",
+      "state.get",
+      "threading.Lock",
+      "worker_a",
+      "worker_b",
+      "worker_c"
+    ]
+  },
+  {
+    "name": "stream_agent.py",
+    "header": "关卡 1-5 · 流式输出（完整版）\n\n核心：stream=True 时，API 返回「增量流」，逐 chunk 返回 delta，要自己累积才能拼出完整内容。\n\n执行流程图（python3 stream_agent.py）：\n\n【开启流式】create(stream=True)  → 返回迭代器（不是一次性完整响应）\n【遍历增量】for chunk in stream:\n  ├─ delta.content       → 累积普通文本（逐片拼接 + 实时打印）\n  └─ delta.tool_calls    → 累积工具调用（arguments 分片按 index 拼接）\n【收尾】返回累积的完整内容 + 工具调用列表\n\n和 1-4（非流式）的本质区别：\n  非流式：create() 一次返回完整 msg.content，直接读\n  流式：   create(stream=True) 返回迭代器，逐 chunk 读 delta，自己累积\n\n方法调用关系：\n  stream_chat() ──> client.chat.completions.create(stream=True)\n       ├─ delta.content  → 累进 full_content + print 逐字\n       └─ delta.tool_calls → 按 index 累积到 tool_calls[]",
+    "functions": [
+      {
+        "name": "get_weather",
+        "line": 34,
+        "doc": ""
+      },
+      {
+        "name": "stream_chat",
+        "line": 54,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "json",
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-5"
+    ],
+    "calls": [
+      "OpenAI",
+      "client.chat.completions.create",
+      "len",
+      "print",
+      "stream_chat",
+      "tool_calls.append"
+    ]
+  },
+  {
+    "name": "structured_out.py",
+    "header": "关卡 1-14 · 结构化输出（完整版）\n\n核心：让 LLM 稳定吐 JSON，失败自动校验重试。\nLLM 输出 JSON 不稳定（会多字、少括号、加解释），所以三招：\n  ① 明确要求「只输出 JSON，不要其他文字」\n  ② json.loads 校验\n  ③ 失败把报错喂回去让它修正，最多重试 N 次\n\n执行流程图（python3 structured_out.py）：\n\n一段文本 → 让 LLM 提取结构化信息（JSON）\n  └─ json.loads 校验\n       ├─ 成功 → 返回 dict\n       └─ 失败 → 把「上次输出 + 报错」喂回，重试（最多 3 次）\n\n方法调用关系：\n  extract_json() ──> client.chat.completions.create（提取）\n       └─ json.loads（校验）──失败──> 重试修正\n\n面试怎么讲（30 秒）：\n  \"让 LLM 稳定吐结构化数据，靠三招：明确要求 JSON、json.loads 校验、失败重试修正。\n  更强的是 JSON mode 和函数调用（天然结构化），以及 pydantic 校验。\"",
+    "functions": [
+      {
+        "name": "extract_json",
+        "line": 40,
+        "doc": "让 LLM 从文本提取信息，输出 JSON，失败自动修正重试"
+      }
+    ],
+    "imports": [
+      "json",
+      "openai"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-14"
+    ],
+    "calls": [
+      "OpenAI",
+      "client.chat.completions.create",
+      "extract_json",
+      "json.dumps",
+      "json.loads",
+      "messages.append",
+      "print",
+      "range"
+    ]
+  },
+  {
+    "name": "token_cost.py",
+    "header": "关卡 1-12 · token 计数与成本优化（完整版）\n\n核心：token 就是钱。要会两件事：\n  1. 算一次调用花了多少 token（精确值看 usage.total_tokens，本地估算用近似函数）\n  2. 算花了多少钱（token × 单价）\n\n执行流程图（python3 token_cost.py）：\n\n[贵写法 prompt] ──> 调 LLM ──> 记 usage（token 数）\n[省写法 prompt] ──> 调 LLM ──> 记 usage（token 数）\n  └─ 对比两次的 token 和成本，看省了多少\n\n省钱策略（面试会问）：\n  ① 压缩 prompt     —— 去掉冗余 system 指令\n  ② 少用工具定义    —— 不用的工具别塞 TOOLS\n  ③ 结果缓存        —— 相同问题返回缓存（1-15 展开）\n  ④ 摘要            —— 长对话压成摘要（1-11 已讲）\n  ⑤ 选便宜模型      —— 简单任务用便宜模型\n\n方法调用关系：\n  estimate_tokens() ──> 本地近似估算（字符数）\n  cost() ──> prompt_tokens*单价 + completion_tokens*单价\n  ask() ──> client.chat.completions.create（拿 usage）\n\n面试怎么讲（30 秒）：\n  \"优化成本先得会算 token。精确值用 API 返回的 usage，本地估算用 tiktoken（GPT）\n  或近似函数。成本 = token × 单价，省钱靠压 prompt、减工具定义、缓存、摘要、选便宜模型。\"",
+    "functions": [
+      {
+        "name": "estimate_tokens",
+        "line": 45,
+        "doc": "本地近似估算 token：中文 1 字≈1 token，英文按词估。\nGPT 可用 tiktoken 精确算；deepseek 未公开 tokenizer，这里用近似。"
+      },
+      {
+        "name": "cost",
+        "line": 53,
+        "doc": "算一次调用的成本（元）"
+      },
+      {
+        "name": "ask",
+        "line": 70,
+        "doc": "调一次 LLM，返回 (答案, prompt_tokens, completion_tokens)"
+      }
+    ],
+    "imports": [
+      "openai",
+      "re"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-12"
+    ],
+    "calls": [
+      "OpenAI",
+      "ask",
+      "client.chat.completions.create",
+      "cost",
+      "estimate_tokens",
+      "int",
+      "len",
+      "print",
+      "re.findall"
+    ]
+  },
+  {
+    "name": "trace_agent.py",
+    "header": "关卡 1-9 · 可观测性 tracing（完整版）\n\n核心：agent 是个黑盒——你不知道它每一步「想了什么、调了什么、耗时多久、花了多少 token」。\ntracing 就是给 agent 装摄像头，把每一步都记下来，出问题能定位到「哪一步慢 / 哪一步错」。\n\n执行流程图（python3 trace_agent.py）：\n\n用户提问\n  └─ for step in 循环：\n       ├─ 调 LLM（计时 + 记 token）→ record(\"llm_call\", ...)\n       ├─ 有工具调用？\n       │    ├─ record(\"action\", 工具名+参数)\n       │    ├─ 执行工具 → record(\"observation\", 结果)\n       │    └─ 把结果喂回 messages，继续循环\n       └─ 没有工具调用 → record(\"final\", 最终答案)，结束\n  └─ 打印 trace 汇总：每步耗时 + 总 token + 总耗时\n\n和前面关卡的区别：\n  1-1~1-8 的 agent 都在「裸奔」——跑错了只能靠 print 猜\n  1-9 给 agent 加了一层 trace，每步留痕，可回溯\n\n方法调用关系：\n  record() ──> trace.append（记一条）+ print（实时显示）\n  run_agent() ──> client.chat.completions.create（计时/记token）+ record()\n\n面试怎么讲（30 秒）：\n  \"生产 agent 必须可观测。tracing 就是记录 agent 每一步的输入输出、耗时、token 用量，\n  出问题能定位到具体哪一步。OpenTelemetry、LangSmith、Langfuse 都是干这个的。\"",
+    "functions": [
+      {
+        "name": "get_weather",
+        "line": 43,
+        "doc": ""
+      },
+      {
+        "name": "record",
+        "line": 61,
+        "doc": "记录一条 trace。kind=类型，content=内容，tokens=token数，t0=开始时间戳（算耗时用）"
+      },
+      {
+        "name": "run_agent",
+        "line": 79,
+        "doc": ""
+      }
+    ],
+    "imports": [
+      "json",
+      "openai",
+      "time"
+    ],
+    "blanks": 0,
+    "topic": [
+      "1-9"
+    ],
+    "calls": [
+      "OpenAI",
+      "TOOL_FUNCS[name]",
+      "client.chat.completions.create",
+      "e.get",
+      "json.loads",
+      "len",
+      "messages.append",
+      "print",
+      "range",
+      "record",
+      "round",
+      "run_agent",
+      "str",
+      "sum",
+      "time.time",
+      "trace.append"
+    ]
+  }
+]

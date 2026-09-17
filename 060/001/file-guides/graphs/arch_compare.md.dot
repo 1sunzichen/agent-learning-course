@@ -1,0 +1,22 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="带着当前文件/问题阅读",fillcolor="#243e36",fontcolor="#ffffff"];
+n1 [label="Phase 2 关卡 2-9 · 架构选型实战（白板对比）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="一、四种架构一张表",fillcolor="#e1eee9",fontcolor="#203c33"];
+n3 [label="二、选型决策树（面试 30 秒能讲）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n4 [label="三、两个易混点的本质区别（面试常问）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n5 [label="四、实战场景匹配（对着你的项目练）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n6 [label="五、面试标准答法（背下来）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n7 [label="六、自检（画不出来就重看代码）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n8 [label="回到练习验证并解释取舍",fillcolor="#e1eee9",fontcolor="#203c33"];
+n0 -> n1 [label="阅读路径",style="solid"];
+n1 -> n2 [label="阅读路径",style="solid"];
+n2 -> n3 [label="阅读路径",style="solid"];
+n3 -> n4 [label="阅读路径",style="solid"];
+n4 -> n5 [label="阅读路径",style="solid"];
+n5 -> n6 [label="阅读路径",style="solid"];
+n6 -> n7 [label="阅读路径",style="solid"];
+n7 -> n8 [label="应用",style="solid"];
+}

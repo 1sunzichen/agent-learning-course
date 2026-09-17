@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent 学习 · 1-6 Plan-and-Execute 复习题</title>
+<style>
+  :root { --bg:#0f0f1a; --card:#1a1a2e; --accent:#4a9eff; --green:#2ecc71; --red:#e74c3c; --yellow:#f39c12; --text:#e0e0e0; --sub:#888; --border:#2a2a3e; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:20px; }
+  .container { max-width:720px; margin:0 auto; }
+  header { text-align:center; padding:16px 0; }
+  header h1 { font-size:22px; color:#fff; margin-bottom:6px; }
+  header p { font-size:13px; color:var(--sub); }
+  .stats { display:flex; gap:10px; margin:14px 0; flex-wrap:wrap; }
+  .stat { flex:1; min-width:80px; padding:10px; border-radius:10px; background:var(--card); border:1px solid var(--border); text-align:center; }
+  .stat .num { font-size:20px; font-weight:700; }
+  .stat .label { font-size:11px; color:var(--sub); margin-top:2px; }
+  .progress-wrap { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:4px; margin-bottom:16px; }
+  .progress-bar { height:10px; border-radius:7px; background:linear-gradient(90deg,var(--green),var(--accent)); transition:width .3s; }
+  .q { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:14px; }
+  .q .qn { font-size:14px; color:var(--accent); font-weight:700; margin-bottom:8px; }
+  .q .qt { font-size:16px; color:#fff; margin-bottom:14px; line-height:1.5; }
+  .opt { display:block; width:100%; text-align:left; padding:11px 14px; margin-bottom:8px; border-radius:9px; background:#16162a; border:1px solid var(--border); color:var(--text); cursor:pointer; font-size:14px; transition:.12s; }
+  .opt:hover { border-color:var(--accent); }
+  .opt.correct { background:rgba(46,204,113,.15); border-color:var(--green); color:var(--green); }
+  .opt.wrong { background:rgba(231,76,60,.15); border-color:var(--red); color:var(--red); }
+  .opt:disabled { cursor:default; opacity:.85; }
+  .explain { display:none; margin-top:10px; padding:12px; border-radius:9px; background:rgba(74,158,255,.08); border:1px solid rgba(74,158,255,.25); font-size:13px; line-height:1.6; color:#c8d8e8; }
+  .explain.show { display:block; }
+  .explain b { color:var(--accent); }
+  .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:6px; margin-left:6px; }
+  .tag.right { background:rgba(46,204,113,.2); color:var(--green); }
+  .tag.bad { background:rgba(231,76,60,.2); color:var(--red); }
+  .wrong-list { margin-top:18px; padding:14px; border-radius:12px; background:var(--card); border:1px solid var(--border); }
+  .wrong-list h3 { font-size:14px; color:var(--red); margin-bottom:8px; }
+  .wrong-list p { font-size:13px; color:var(--sub); }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🧠 Agent 学习 · 1-6 Plan-and-Execute 复习题</h1>
+    <p>昨天学了 1-6，点选项即时判断 · 答错自动进错题本</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="stDone">0</div><div class="label">已答</div></div>
+    <div class="stat"><div class="num" id="stRight" style="color:var(--green)">0</div><div class="label">答对</div></div>
+    <div class="stat"><div class="num" id="stWrong" style="color:var(--red)">0</div><div class="label">答错</div></div>
+  </div>
+
+  <div class="progress-wrap"><div class="progress-bar" id="pbar" style="width:0%"></div></div>
+
+  <div id="quiz"></div>
+
+  <div class="wrong-list" id="wrongList" style="display:none">
+    <h3>📕 错题本（本页答错的）</h3>
+    <div id="wrongItems"></div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "Plan-and-Execute 和 ReAct 的本质区别是？",
+    opts: ["Plan 比 ReAct 更快", "ReAct 每步都想一步做一步；Plan 先一次性规划出完整步骤，再逐步执行", "Plan 不用 LLM", "两者没区别"],
+    a: 1,
+    e: "ReAct 是「想→做→看→再想」每步交错；Plan-and-Execute 是「planner 先出完整计划 → executor 逐步执行」，规划和执行分离。"
+  },
+  {
+    q: "planner 阶段做了什么？",
+    opts: ["直接执行任务", "让 LLM 输出一个完整 JSON 计划（步骤列表）", "调用工具", "校验最终结果"],
+    a: 1,
+    e: "planner 只做一件事：让 LLM 把任务拆成有序步骤，输出结构化 JSON 计划，供后面 executor 逐步执行。"
+  },
+  {
+    q: "为什么计划要用 JSON 格式？",
+    opts: ["好看", "结构化，方便代码用 for 循环遍历 steps 逐条执行", "加密", "省 token"],
+    a: 1,
+    e: "JSON 是结构化数据，代码能 plan['steps'] 遍历每条步骤。如果 LLM 输出自由文本，就没法程序化地逐条执行了。"
+  },
+  {
+    q: "json.loads(raw) 在 planner 里起什么作用？",
+    opts: ["把 dict 转成字符串", "把 LLM 返回的计划字符串解析成 dict，才能遍历 steps", "加密计划", "校验语法错误"],
+    a: 1,
+    e: "LLM 返回的是一段字符串（JSON 文本），json.loads 把它转成 dict，后面的 for s in plan['steps'] 才能遍历。"
+  },
+  {
+    q: "executor 里，计划中某步带了 tool（如 get_weather），代码怎么执行？",
+    opts: ["让 LLM 假装调了工具", "从 TOOL_FUNCS 取出真实函数，用 s['args'] 参数调用：fn(**s['args'])", "跳过这步", "再让 LLM 重新规划"],
+    a: 1,
+    e: "TOOL_FUNCS[s['tool']] 取出真实 Python 函数，**s['args'] 把参数字典展开成关键字参数调用。这步是「真执行工具」，不是 LLM 模拟。"
+  },
+  {
+    q: "计划中某步不带 tool 时，executor 怎么做？",
+    opts: ["跳过", "让 LLM 基于「已完成结果」写这一步的内容", "直接报错", "重新调用 planner"],
+    a: 1,
+    e: "无工具步骤靠 LLM 自己写内容（如「根据天气写一句文案」）。它需要知道前面步骤的结果，才能写出连贯的内容。"
+  },
+  {
+    q: "无工具步骤为什么要把「已完成结果」注入上下文？",
+    opts: ["让 LLM 更快", "否则 LLM 不知道前面做了啥，写出的内容会和前面断档", "省 token", "其实不用注入"],
+    a: 1,
+    e: "把「任务 + 已完成结果 + 当前步骤」一起喂给 LLM，它才知道上下文。漏掉已完成结果，写出来的东西就衔接不上。"
+  },
+  {
+    q: "Plan-and-Execute 最大的缺点是？",
+    opts: ["太慢", "计划一旦定下，执行中不易调整；发现计划错了难以及时改", "太贵", "不支持工具调用"],
+    a: 1,
+    e: "Plan 是先规划后执行，中间如果发现计划不对，朴素版只能硬着头皮走完。这是它和 ReAct 相比最大的短板。"
+  },
+  {
+    q: "什么场景更适合 Plan-and-Execute（而不是 ReAct）？",
+    opts: ["环境多变、需要边走边看", "步骤多、目标明确的任务", "单步的简单任务", "任何场景都行"],
+    a: 1,
+    e: "步骤多、目标明确 → Plan 先规划好全局、省 token、看得清；环境多变 → ReAct 每步重新决策更灵活。"
+  },
+  {
+    q: "计划执行到一半发现不对，生产级的补救做法是？",
+    opts: ["无视，硬走完", "关键节点加「反思」检查，需要时重新规划（replan）", "从头再来", "让用户重输需求"],
+    a: 1,
+    e: "生产级是「计划 + 反思 + 重规划」闭环：关键节点让 LLM 反思剩余计划，发现不对就 replan。这也是 1-7 Reflection 要讲的内容。"
+  },
+];
+
+const KEY = 'quiz-1-6-state';
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
+function save(o) { localStorage.setItem(KEY, JSON.stringify(o)); }
+
+let state = load();
+let wrong = state.wrong || [];
+
+const quiz = document.getElementById('quiz');
+const stDone = document.getElementById('stDone');
+const stRight = document.getElementById('stRight');
+const stWrong = document.getElementById('stWrong');
+const pbar = document.getElementById('pbar');
+const wrongList = document.getElementById('wrongList');
+const wrongItems = document.getElementById('wrongItems');
+
+function render() {
+  quiz.innerHTML = '';
+  let done = 0, right = 0, w = 0;
+  QUESTIONS.forEach((item, i) => {
+    const d = state[i];
+    const box = document.createElement('div');
+    box.className = 'q';
+    const qn = document.createElement('div');
+    qn.className = 'qn';
+    qn.textContent = '第 ' + (i+1) + ' 题';
+    if (d !== undefined) {
+      done++;
+      const tag = document.createElement('span');
+      tag.className = 'tag ' + (d === item.a ? 'right' : 'bad');
+      tag.textContent = d === item.a ? '✓ 对' : '✗ 错';
+      qn.appendChild(tag);
+      if (d === item.a) right++; else w++;
+    }
+    box.appendChild(qn);
+
+    const qt = document.createElement('div');
+    qt.className = 'qt';
+    qt.textContent = item.q;
+    box.appendChild(qt);
+
+    item.opts.forEach((opt, oi) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.textContent = String.fromCharCode(65+oi) + '. ' + opt;
+      if (d !== undefined) {
+        btn.disabled = true;
+        if (oi === item.a) btn.classList.add('correct');
+        else if (oi === d) btn.classList.add('wrong');
+      } else {
+        btn.onclick = () => answer(i, oi);
+      }
+      box.appendChild(btn);
+    });
+
+    const ex = document.createElement('div');
+    ex.className = 'explain' + (d !== undefined ? ' show' : '');
+    ex.innerHTML = '<b>解析：</b>' + item.e;
+    box.appendChild(ex);
+
+    quiz.appendChild(box);
+  });
+
+  stDone.textContent = done;
+  stRight.textContent = right;
+  stWrong.textContent = w;
+  pbar.style.width = (done / QUESTIONS.length * 100) + '%';
+
+  if (wrong.length) {
+    wrongList.style.display = 'block';
+    wrongItems.innerHTML = wrong.map(wi => {
+      const item = QUESTIONS[wi];
+      return '<p><b>第' + (wi+1) + '题：</b>' + item.q + '（正确答案：' + String.fromCharCode(65+item.a) + '）</p>';
+    }).join('');
+  } else {
+    wrongList.style.display = 'none';
+  }
+}
+
+function answer(i, oi) {
+  state[i] = oi;
+  if (oi !== QUESTIONS[i].a) {
+    if (wrong.indexOf(i) === -1) wrong.push(i);
+  }
+  state.wrong = wrong;
+  save(state);
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

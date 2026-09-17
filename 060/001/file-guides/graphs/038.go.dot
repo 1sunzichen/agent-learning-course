@@ -1,0 +1,29 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="findTool · L54",fillcolor="#e1eee9",fontcolor="#203c33"];
+n1 [label="agentLoop · L65",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="main · L92",fillcolor="#e1eee9",fontcolor="#203c33"];
+n3 [label="allowedExpr · L108",fillcolor="#e1eee9",fontcolor="#203c33"];
+n4 [label="*exprParser.parseExpr · L123",fillcolor="#e1eee9",fontcolor="#203c33"];
+n5 [label="*exprParser.parseTerm · L148",fillcolor="#e1eee9",fontcolor="#203c33"];
+n6 [label="*exprParser.parseFactor · L173",fillcolor="#e1eee9",fontcolor="#203c33"];
+n7 [label="evalExpr · L199",fillcolor="#e1eee9",fontcolor="#203c33"];
+n8 [label="程序入口",fillcolor="#243e36",fontcolor="#ffffff"];
+n9 [label="t.run",fillcolor="#f2ede4",fontcolor="#203c33"];
+n10 [label="strings.ContainsRune",fillcolor="#f2ede4",fontcolor="#203c33"];
+n11 [label="strconv.ParseFloat",fillcolor="#f2ede4",fontcolor="#203c33"];
+n12 [label="strings.ReplaceAll",fillcolor="#f2ede4",fontcolor="#203c33"];
+n8 -> n2 [label="入口",style="solid"];
+n1 -> n0 [label="L78",style="solid"];
+n1 -> n9 [label="L83",style="solid"];
+n2 -> n1 [label="L99",style="solid"];
+n3 -> n10 [label="L110",style="solid"];
+n4 -> n5 [label="L124 方法候选, L134 方法候选",style="dashed"];
+n5 -> n6 [label="L149 方法候选, L159 方法候选",style="dashed"];
+n6 -> n4 [label="L179 方法候选",style="dashed"];
+n6 -> n11 [label="L196",style="solid"];
+n7 -> n12 [label="L200",style="solid"];
+n7 -> n4 [label="L202 方法候选",style="dashed"];
+}

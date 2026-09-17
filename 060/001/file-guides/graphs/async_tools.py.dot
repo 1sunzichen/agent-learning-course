@@ -1,0 +1,21 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="get_weather · L30",fillcolor="#e1eee9",fontcolor="#203c33"];
+n1 [label="serial · L36",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="parallel · L45",fillcolor="#e1eee9",fontcolor="#203c33"];
+n3 [label="模块顶层 / 条件入口",fillcolor="#243e36",fontcolor="#ffffff"];
+n4 [label="asyncio.sleep",fillcolor="#f2ede4",fontcolor="#203c33"];
+n5 [label="asyncio.gather",fillcolor="#f2ede4",fontcolor="#203c33"];
+n6 [label="time.time",fillcolor="#f2ede4",fontcolor="#203c33"];
+n7 [label="asyncio.run",fillcolor="#f2ede4",fontcolor="#203c33"];
+n0 -> n4 [label="L32",style="solid"];
+n1 -> n0 [label="L40",style="solid"];
+n2 -> n0 [label="L47",style="solid"];
+n2 -> n5 [label="L48",style="solid"];
+n3 -> n6 [label="L54, L56, L58, L60",style="solid"];
+n3 -> n7 [label="L55, L59",style="solid"];
+n3 -> n1 [label="L55",style="solid"];
+n3 -> n2 [label="L59",style="solid"];
+}

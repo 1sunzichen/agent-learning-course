@@ -1,0 +1,36 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="call_tool · L58",fillcolor="#e1eee9",fontcolor="#203c33"];
+n1 [label="handle_request · L70",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="server_main · L105",fillcolor="#e1eee9",fontcolor="#203c33"];
+n3 [label="rpc · L122",fillcolor="#e1eee9",fontcolor="#203c33"];
+n4 [label="main_client · L132",fillcolor="#e1eee9",fontcolor="#203c33"];
+n5 [label="模块顶层 / 条件入口",fillcolor="#243e36",fontcolor="#ffffff"];
+n6 [label="eval",fillcolor="#f2ede4",fontcolor="#203c33"];
+n7 [label="________",fillcolor="#f2ede4",fontcolor="#203c33"];
+n8 [label="json.loads",fillcolor="#f2ede4",fontcolor="#203c33"];
+n9 [label="json.dumps",fillcolor="#f2ede4",fontcolor="#203c33"];
+n10 [label="proc.stdin.write",fillcolor="#f2ede4",fontcolor="#203c33"];
+n11 [label="proc.stdin.flush",fillcolor="#f2ede4",fontcolor="#203c33"];
+n12 [label="proc.stdout.readline",fillcolor="#f2ede4",fontcolor="#203c33"];
+n13 [label="subprocess.Popen",fillcolor="#f2ede4",fontcolor="#203c33"];
+n14 [label="proc.terminate",fillcolor="#f2ede4",fontcolor="#203c33"];
+n0 -> n6 [label="L66",style="solid"];
+n1 -> n7 [label="L97",style="solid"];
+n2 -> n8 [label="L111",style="solid"];
+n2 -> n1 [label="L112",style="solid"];
+n2 -> n9 [label="L118",style="solid"];
+n3 -> n10 [label="L127",style="solid"];
+n3 -> n9 [label="L127",style="solid"];
+n3 -> n11 [label="L128",style="solid"];
+n3 -> n8 [label="L129",style="solid"];
+n3 -> n12 [label="L129",style="solid"];
+n4 -> n13 [label="L138",style="solid"];
+n4 -> n3 [label="L144, L148, L154",style="solid"];
+n4 -> n9 [label="L145",style="solid"];
+n4 -> n14 [label="L161",style="solid"];
+n5 -> n2 [label="L166",style="solid"];
+n5 -> n4 [label="L168",style="solid"];
+}

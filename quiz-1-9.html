@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent 学习 · 1-9 可观测性 tracing 复习题</title>
+<style>
+  :root { --bg:#0f0f1a; --card:#1a1a2e; --accent:#4a9eff; --green:#2ecc71; --red:#e74c3c; --yellow:#f39c12; --text:#e0e0e0; --sub:#888; --border:#2a2a3e; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:20px; }
+  .container { max-width:720px; margin:0 auto; }
+  header { text-align:center; padding:16px 0; }
+  header h1 { font-size:22px; color:#fff; margin-bottom:6px; }
+  header p { font-size:13px; color:var(--sub); }
+  .stats { display:flex; gap:10px; margin:14px 0; flex-wrap:wrap; }
+  .stat { flex:1; min-width:80px; padding:10px; border-radius:10px; background:var(--card); border:1px solid var(--border); text-align:center; }
+  .stat .num { font-size:20px; font-weight:700; }
+  .stat .label { font-size:11px; color:var(--sub); margin-top:2px; }
+  .progress-wrap { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:4px; margin-bottom:16px; }
+  .progress-bar { height:10px; border-radius:7px; background:linear-gradient(90deg,var(--green),var(--accent)); transition:width .3s; }
+  .q { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:14px; }
+  .q .qn { font-size:14px; color:var(--accent); font-weight:700; margin-bottom:8px; }
+  .q .qt { font-size:16px; color:#fff; margin-bottom:14px; line-height:1.5; }
+  .opt { display:block; width:100%; text-align:left; padding:11px 14px; margin-bottom:8px; border-radius:9px; background:#16162a; border:1px solid var(--border); color:var(--text); cursor:pointer; font-size:14px; transition:.12s; }
+  .opt:hover { border-color:var(--accent); }
+  .opt.correct { background:rgba(46,204,113,.15); border-color:var(--green); color:var(--green); }
+  .opt.wrong { background:rgba(231,76,60,.15); border-color:var(--red); color:var(--red); }
+  .opt:disabled { cursor:default; opacity:.85; }
+  .explain { display:none; margin-top:10px; padding:12px; border-radius:9px; background:rgba(74,158,255,.08); border:1px solid rgba(74,158,255,.25); font-size:13px; line-height:1.6; color:#c8d8e8; }
+  .explain.show { display:block; }
+  .explain b { color:var(--accent); }
+  .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:6px; margin-left:6px; }
+  .tag.right { background:rgba(46,204,113,.2); color:var(--green); }
+  .tag.bad { background:rgba(231,76,60,.2); color:var(--red); }
+  .wrong-list { margin-top:18px; padding:14px; border-radius:12px; background:var(--card); border:1px solid var(--border); }
+  .wrong-list h3 { font-size:14px; color:var(--red); margin-bottom:8px; }
+  .wrong-list p { font-size:13px; color:var(--sub); }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🧠 Agent 学习 · 1-9 可观测性 tracing 复习题</h1>
+    <p>昨天学了 1-9，点选项即时判断 · 答错自动进错题本</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="stDone">0</div><div class="label">已答</div></div>
+    <div class="stat"><div class="num" id="stRight" style="color:var(--green)">0</div><div class="label">答对</div></div>
+    <div class="stat"><div class="num" id="stWrong" style="color:var(--red)">0</div><div class="label">答错</div></div>
+  </div>
+
+  <div class="progress-wrap"><div class="progress-bar" id="pbar" style="width:0%"></div></div>
+
+  <div id="quiz"></div>
+
+  <div class="wrong-list" id="wrongList" style="display:none">
+    <h3>📕 错题本（本页答错的）</h3>
+    <div id="wrongItems"></div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "tracing 是干什么的？",
+    opts: ["让 agent 跑得更快", "记录每一步（想了什么/调了什么/耗时/token），出问题能定位到具体哪一步", "加密通信", "省 token"],
+    a: 1,
+    e: "agent 是个黑盒，tracing 就是给它装摄像头。出问题能从 trace 定位到「哪一步慢 / 哪一步错」，而不是瞎猜。"
+  },
+  {
+    q: "tracing 的「三大件」是什么？",
+    opts: ["读/写/删", "耗时 / token / 动作（每步做了什么）", "用户名/密码/验证码", "缓存/索引/分页"],
+    a: 1,
+    e: "耗时=知道慢在哪，token=知道钱花在哪，动作=知道调了什么工具。三件凑齐才能完整回溯。"
+  },
+  {
+    q: "record() 里的耗时（ms）是怎么算的？",
+    opts: ["写死一个固定值", "round((time.time() - t0) * 1000)", "随机生成", "不用算"],
+    a: 1,
+    e: "t0 是调 LLM 前的时间戳，time.time()-t0 是过了多少秒，×1000 转毫秒，round 取整。"
+  },
+  {
+    q: "精确的 token 数从哪拿？",
+    opts: ["自己手动数", "resp.usage.total_tokens（服务端返回）", "凭感觉估", "没有这个数据"],
+    a: 1,
+    e: "usage 是服务端算好的精确值。自己数既不现实也不准。"
+  },
+  {
+    q: "真正的 tracing 数据结构是什么？",
+    opts: ["平铺的列表", "树形（span 树，父子嵌套）", "循环队列", "哈希表"],
+    a: 1,
+    e: "一次 run 下挂多个 llm_call，每个 llm_call 下挂 action/observation，是父子嵌套的树。LangSmith/Langfuse 底层就是这个结构。"
+  },
+  {
+    q: "tracing 和 logging 的区别？",
+    opts: ["完全一样", "logging 记「事件」；tracing 记「一次完整调用的链路」（有父子因果）", "logging 更快", "tracing 不用存"],
+    a: 1,
+    e: "logging 只能回答「某时间点发生了什么」，tracing 能回答「这次请求为什么慢/错在哪一步」。对应 OpenTelemetry 的 trace+metrics+logs 三位一体。"
+  },
+  {
+    q: "常用的 tracing 平台 / 标准是？",
+    opts: ["OpenTelemetry / LangSmith / Langfuse", "MySQL", "Redis", "Nginx"],
+    a: 0,
+    e: "OpenTelemetry 是标准，LangSmith/Langfuse 是 LLM 场景的 tracing 平台。"
+  },
+  {
+    q: "agent 出问题怎么排查？",
+    opts: ["直接重写一遍", "先看 trace 定位到具体哪一步慢/错，再看那步日志看细节", "不管它", "加 print 瞎猜"],
+    a: 1,
+    e: "先 trace 定位（哪一步），再日志看细节（那一步的上下文），再 metrics 看是不是全局问题。"
+  },
+  {
+    q: "为什么生产 agent 必须可观测？",
+    opts: ["为了好看", "agent 是黑盒，没 trace 出问题只能瞎猜", "为了省钱", "无所谓"],
+    a: 1,
+    e: "前面 1-1~1-8 的 agent 都在「裸奔」，跑错只能靠 print 猜。生产环境必须每步留痕可回溯。"
+  },
+  {
+    q: "trace 里记 token 是为了什么？",
+    opts: ["好看", "知道钱花在哪，能算成本", "加密", "无所谓"],
+    a: 1,
+    e: "不记 token 就不知道钱花在哪、优化有没有效果。token 就是钱。"
+  },
+];
+
+const KEY = 'quiz-1-9-state';
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
+function save(o) { localStorage.setItem(KEY, JSON.stringify(o)); }
+
+let state = load();
+let wrong = state.wrong || [];
+
+const quiz = document.getElementById('quiz');
+const stDone = document.getElementById('stDone');
+const stRight = document.getElementById('stRight');
+const stWrong = document.getElementById('stWrong');
+const pbar = document.getElementById('pbar');
+const wrongList = document.getElementById('wrongList');
+const wrongItems = document.getElementById('wrongItems');
+
+function render() {
+  quiz.innerHTML = '';
+  let done = 0, right = 0, w = 0;
+  QUESTIONS.forEach((item, i) => {
+    const d = state[i];
+    const box = document.createElement('div');
+    box.className = 'q';
+    const qn = document.createElement('div');
+    qn.className = 'qn';
+    qn.textContent = '第 ' + (i+1) + ' 题';
+    if (d !== undefined) {
+      done++;
+      const tag = document.createElement('span');
+      tag.className = 'tag ' + (d === item.a ? 'right' : 'bad');
+      tag.textContent = d === item.a ? '✓ 对' : '✗ 错';
+      qn.appendChild(tag);
+      if (d === item.a) right++; else w++;
+    }
+    box.appendChild(qn);
+    const qt = document.createElement('div');
+    qt.className = 'qt';
+    qt.textContent = item.q;
+    box.appendChild(qt);
+    item.opts.forEach((opt, oi) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.textContent = String.fromCharCode(65+oi) + '. ' + opt;
+      if (d !== undefined) {
+        btn.disabled = true;
+        if (oi === item.a) btn.classList.add('correct');
+        else if (oi === d) btn.classList.add('wrong');
+      } else {
+        btn.onclick = () => answer(i, oi);
+      }
+      box.appendChild(btn);
+    });
+    const ex = document.createElement('div');
+    ex.className = 'explain' + (d !== undefined ? ' show' : '');
+    ex.innerHTML = '<b>解析：</b>' + item.e;
+    box.appendChild(ex);
+    quiz.appendChild(box);
+  });
+  stDone.textContent = done;
+  stRight.textContent = right;
+  stWrong.textContent = w;
+  pbar.style.width = (done / QUESTIONS.length * 100) + '%';
+  if (wrong.length) {
+    wrongList.style.display = 'block';
+    wrongItems.innerHTML = wrong.map(wi => {
+      const item = QUESTIONS[wi];
+      return '<p><b>第' + (wi+1) + '题：</b>' + item.q + '（正确答案：' + String.fromCharCode(65+item.a) + '）</p>';
+    }).join('');
+  } else {
+    wrongList.style.display = 'none';
+  }
+}
+
+function answer(i, oi) {
+  state[i] = oi;
+  if (oi !== QUESTIONS[i].a) {
+    if (wrong.indexOf(i) === -1) wrong.push(i);
+  }
+  state.wrong = wrong;
+  save(state);
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

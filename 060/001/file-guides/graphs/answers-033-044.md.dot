@@ -1,0 +1,36 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="带着当前文件/问题阅读",fillcolor="#243e36",fontcolor="#ffffff"];
+n1 [label="关卡 2-15 ~ 3-9 答案（033 ~ 044）· Python 填空版 + Go 完整版对照",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="033（关卡 2-15 · 跨 agent 分布式 tracing）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n3 [label="034（关卡 2-16 · 成本分摊与预算控制）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n4 [label="035（关卡 2-17 · 人机协同 HITL）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n5 [label="036（关卡 2-18 · 多 agent 评测）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n6 [label="037（关卡 2-19 · 安全与权限隔离）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n7 [label="038（关卡 3-1 · LangChain 重写）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n8 [label="039（关卡 3-2 · LangGraph 状态机）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n9 [label="040（关卡 3-3 · MCP 手写实现）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n10 [label="041（关卡 3-4 · 评估 eval harness）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n11 [label="042（关卡 3-5 · RAG 进阶）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n12 [label="reranked = rerank_local(query, top3, hybrid_score)  # 无 key 降级",fillcolor="#e1eee9",fontcolor="#203c33"];
+n13 [label="043（关卡 3-8 · 检索质量评估）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n14 [label="044（关卡 3-9 · LangGraph 进阶：checkpoint + 人审）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n15 [label="回到练习验证并解释取舍",fillcolor="#e1eee9",fontcolor="#203c33"];
+n0 -> n1 [label="阅读路径",style="solid"];
+n1 -> n2 [label="阅读路径",style="solid"];
+n2 -> n3 [label="阅读路径",style="solid"];
+n3 -> n4 [label="阅读路径",style="solid"];
+n4 -> n5 [label="阅读路径",style="solid"];
+n5 -> n6 [label="阅读路径",style="solid"];
+n6 -> n7 [label="阅读路径",style="solid"];
+n7 -> n8 [label="阅读路径",style="solid"];
+n8 -> n9 [label="阅读路径",style="solid"];
+n9 -> n10 [label="阅读路径",style="solid"];
+n10 -> n11 [label="阅读路径",style="solid"];
+n11 -> n12 [label="阅读路径",style="solid"];
+n12 -> n13 [label="阅读路径",style="solid"];
+n13 -> n14 [label="阅读路径",style="solid"];
+n14 -> n15 [label="应用",style="solid"];
+}

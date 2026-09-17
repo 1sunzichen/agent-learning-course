@@ -1,0 +1,17 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="solve · L36",fillcolor="#e1eee9",fontcolor="#203c33"];
+n1 [label="reflect · L54",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="模块顶层 / 条件入口",fillcolor="#243e36",fontcolor="#ffffff"];
+n3 [label="OpenAI",fillcolor="#f2ede4",fontcolor="#203c33"];
+n4 [label="__import__",fillcolor="#f2ede4",fontcolor="#203c33"];
+n5 [label="client.chat.completions.create",fillcolor="#f2ede4",fontcolor="#203c33"];
+n2 -> n3 [label="L26",style="solid"];
+n2 -> n4 [label="L27",style="solid"];
+n0 -> n5 [label="L48",style="solid"];
+n1 -> n5 [label="L56",style="solid"];
+n2 -> n0 [label="L76, L91",style="solid"];
+n2 -> n1 [label="L82",style="solid"];
+}

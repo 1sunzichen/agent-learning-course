@@ -1,0 +1,14 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="044.go · Graph.save · L48",fillcolor="#e1eee9",fontcolor="#203c33"];
+n1 [label="checkpoints.json\ncontent / approved",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="044.go · Graph.load · L38",fillcolor="#e1eee9",fontcolor="#203c33"];
+n3 [label="Graph.run · L67 恢复流程",fillcolor="#e1eee9",fontcolor="#203c33"];
+n4 [label="main · L80 启动清理",fillcolor="#243e36",fontcolor="#ffffff"];
+n0 -> n1 [label="写入",style="solid"];
+n1 -> n2 [label="读取",style="solid"];
+n2 -> n3 [label="恢复状态",style="solid"];
+n4 -> n1 [label="删除旧文件",style="dashed"];
+}

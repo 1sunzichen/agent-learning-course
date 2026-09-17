@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent 学习中心</title>
+<style>
+  :root {
+    --bg:#0f0f1a; --card:#1a1a2e; --accent:#4a9eff;
+    --green:#2ecc71; --red:#e74c3c; --yellow:#f39c12; --purple:#a855f7;
+    --text:#e0e0e0; --sub:#888; --border:#2a2a3e;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:20px; }
+  .container { max-width:760px; margin:0 auto; }
+  header { text-align:center; padding:20px 0 16px; }
+  header h1 { font-size:24px; color:#fff; margin-bottom:6px; }
+  header p { font-size:13px; color:var(--sub); }
+
+  /* tab 导航 */
+  .tabs { display:flex; gap:8px; justify-content:center; margin-bottom:18px; }
+  .tab { padding:10px 22px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--sub); font-size:15px; font-weight:600; cursor:pointer; transition:.15s; }
+  .tab:hover { border-color:var(--accent); }
+  .tab.active { background:var(--accent); color:#06121f; border-color:var(--accent); }
+
+  /* 统计 + 进度 */
+  .stats { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .stat { flex:1; min-width:80px; padding:12px; border-radius:10px; background:var(--card); border:1px solid var(--border); text-align:center; }
+  .stat .num { font-size:22px; font-weight:700; }
+  .stat .label { font-size:11px; color:var(--sub); margin-top:3px; }
+  .progress-wrap { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:4px; margin-bottom:16px; }
+  .progress-bar { height:14px; border-radius:8px; background:linear-gradient(90deg,var(--green),var(--accent)); transition:width .3s; }
+
+  /* 打卡表 */
+  .phase { margin-bottom:18px; }
+  .phase-head { font-size:15px; font-weight:700; color:#fff; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+  .phase-head .dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+  .p1 .dot{background:var(--accent)} .p2 .dot{background:var(--green)} .p3 .dot{background:var(--purple)} .p4 .dot{background:var(--yellow)}
+  .phase-head .cnt { font-size:12px; color:var(--sub); font-weight:400; margin-left:auto; }
+  .grid { display:grid; grid-template-columns:1fr; gap:6px; }
+  .day { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:9px; background:var(--card); border:1px solid var(--border); font-size:13px; }
+  .day .dnum { flex-shrink:0; width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; background:rgba(0,0,0,.3); border:1px solid var(--border); }
+  .day .info { flex:1; min-width:0; }
+  .day .info .lv { font-weight:600; color:#fff; }
+  .day .info .tp { font-size:11px; color:var(--sub); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .day .check { flex-shrink:0; width:20px; height:20px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff; }
+  .day.done { background:rgba(46,204,113,.08); border-color:rgba(46,204,113,.4); }
+  .day.done .dnum { background:var(--green); color:#000; border-color:var(--green); }
+  .day.done .check { background:var(--green); border-color:var(--green); color:#000; }
+  .day.done .info .lv, .day.done .info .tp { color:var(--sub); text-decoration:line-through; }
+  .day.missed { background:rgba(231,76,60,.07); border-color:rgba(231,76,60,.35); }
+  .day.missed .dnum { border-color:var(--red); color:var(--red); }
+  .day.missed .check { border-color:var(--red); color:var(--red); }
+  .day.today { border-color:var(--yellow); box-shadow:0 0 0 1px var(--yellow); }
+  .day.today .dnum { background:var(--yellow); color:#000; border-color:var(--yellow); }
+  .day.future { opacity:.45; }
+  .legend { display:flex; gap:14px; justify-content:center; margin:16px 0 6px; font-size:11px; color:var(--sub); flex-wrap:wrap; }
+  .legend span { display:flex; align-items:center; gap:4px; }
+  .legend .box { width:10px; height:10px; border-radius:3px; display:inline-block; }
+
+  /* 复习题 */
+  .quiz-group { margin-bottom:20px; }
+  .quiz-group h2 { font-size:16px; color:var(--accent); margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+  .q { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; }
+  .q .qn { font-size:13px; color:var(--accent); font-weight:700; margin-bottom:8px; }
+  .q .qt { font-size:15px; color:#fff; margin-bottom:12px; line-height:1.5; }
+  .opt { display:block; width:100%; text-align:left; padding:10px 13px; margin-bottom:7px; border-radius:9px; background:#16162a; border:1px solid var(--border); color:var(--text); cursor:pointer; font-size:14px; transition:.12s; }
+  .opt:hover { border-color:var(--accent); }
+  .opt.correct { background:rgba(46,204,113,.15); border-color:var(--green); color:var(--green); }
+  .opt.wrong { background:rgba(231,76,60,.15); border-color:var(--red); color:var(--red); }
+  .opt:disabled { cursor:default; opacity:.85; }
+  .explain { display:none; margin-top:9px; padding:11px; border-radius:9px; background:rgba(74,158,255,.08); border:1px solid rgba(74,158,255,.25); font-size:13px; line-height:1.6; color:#c8d8e8; }
+  .explain.show { display:block; }
+  .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:6px; margin-left:6px; }
+  .tag.right { background:rgba(46,204,113,.2); color:var(--green); }
+  .tag.bad { background:rgba(231,76,60,.2); color:var(--red); }
+  .wrong-list { margin-top:14px; padding:14px; border-radius:12px; background:var(--card); border:1px solid var(--border); }
+  .wrong-list h3 { font-size:14px; color:var(--red); margin-bottom:8px; }
+  .wrong-list p { font-size:13px; color:var(--sub); margin-bottom:6px; line-height:1.5; }
+  .mode-switch { display:flex; gap:8px; margin-bottom:14px; }
+  .mode { flex:1; padding:9px; border-radius:9px; border:1px solid var(--border); background:var(--card); color:var(--sub); font-size:14px; font-weight:600; cursor:pointer; transition:.15s; }
+  .mode:hover { border-color:var(--accent); }
+  .mode.active { background:var(--accent); color:#06121f; border-color:var(--accent); }
+  .score-banner { display:none; text-align:center; padding:14px; border-radius:10px; margin-bottom:14px; background:var(--card); border:1px solid var(--border); font-size:15px; color:#fff; }
+  .score-banner.show { display:block; }
+  .score-banner b { color:var(--yellow); font-size:22px; }
+
+  /* 课程表 */
+  .schedule { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:14px; }
+  .schedule h2 { font-size:14px; color:var(--yellow); margin-bottom:10px; }
+  .schedule .week { margin-bottom:10px; }
+  .schedule .week:last-child { margin-bottom:0; }
+  .schedule .week-title { font-size:12px; color:var(--sub); font-weight:700; margin-bottom:4px; }
+  .schedule .row { display:flex; align-items:baseline; gap:8px; padding:3px 0; font-size:12px; border-bottom:1px dashed rgba(42,42,62,.6); }
+  .schedule .row:last-child { border-bottom:none; }
+  .schedule .dow { width:34px; flex-shrink:0; color:var(--sub); font-weight:600; }
+  .schedule .content { flex:1; color:var(--text); }
+  .schedule .content b { color:#fff; }
+  .schedule .note { color:var(--sub); font-size:11px; }
+  .schedule .heavy { color:var(--red); font-size:11px; margin-left:4px; }
+  .schedule .catchup .content, .schedule .buffer .content { color:var(--sub); }
+  .schedule .math .content { color:var(--purple); }
+
+  :root { --sub:#abb3c3; }
+  .project-intro { padding:20px; margin-bottom:18px; background:#162332; border:1px solid #375064; border-radius:12px; line-height:1.8; }
+  .project-intro h2 {font-size:21px;color:#fff;margin-bottom:10px}.project-intro p{margin-bottom:10px;font-size:14px}.eyebrow{color:#7cddc0;font-weight:700;letter-spacing:2px}
+  a{color:#8ec6ff} button{cursor:pointer} .project-intro button,.lesson button,#reviewQueue button{background:#8ee0c6;color:#102922;border:0;border-radius:7px;padding:10px 14px;font-weight:600;margin:5px 6px 5px 0}
+  .lesson{border:1px solid var(--border);background:var(--card);border-radius:10px;margin-bottom:8px}.lesson>summary{display:flex;align-items:center;gap:14px;padding:15px;cursor:pointer;list-style:none}.lesson>summary::after{content:'＋';margin-left:auto}.lesson[open]>summary::after{content:'−'}
+  .lesson summary b{font-size:14px}.lesson small{display:block;color:var(--sub);margin-top:6px;line-height:1.5}.dnum{color:#8ee0c6;font-size:19px;min-width:28px}.lesson-body{padding:0 18px 18px;line-height:1.75;font-size:14px}.lesson-body p{margin:10px 0}.lesson-body details{margin:12px 0}.lesson-body label{display:block;margin:12px 0}textarea,select,input{display:block;width:100%;margin-top:5px;background:#101a25;color:#eef3fa;border:1px solid #526174;border-radius:6px;padding:10px;font:inherit}textarea{resize:vertical}.hint{color:var(--sub);font-size:12px}.gate{border-left:3px solid #8ee0c6;padding:10px;background:#163033}.evidence{white-space:pre-wrap;overflow-wrap:anywhere}code{overflow-wrap:anywhere}summary:focus-visible,button:focus-visible{outline:2px solid #8ee0c6;outline-offset:3px}
+  @media(max-width:480px){body{padding:12px}.phase-head{flex-wrap:wrap}.lesson>summary{padding:12px;gap:8px}.tabs .tab{padding:10px 14px}.project-intro{padding:15px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🤖 Agent 学习中心</h1>
+    <p>60 天 · 每天一个主题 · 2 小时 · 写代码跑通才算过关</p>
+  </header>
+
+  <a href="agent-town.html" style="display:block;text-decoration:none;background:#e8efd9;color:#244e40;border:1px solid #9ebd99;border-radius:14px;padding:20px;margin:0 0 20px;line-height:1.7">
+    <strong style="font-size:20px">🏡 进入 Agent 小镇 →</strong><br>
+    <span>四章60关：从修工具线路到编排恢复、检索和项目交付。逐步看数据，做变式实验。</span><br>
+    <small>完整60关 · 主线解锁 / 自由实验 · 游戏进度独立，不计入真实代码掌握</small>
+  </a>
+  <a href="060/001/file-guides/index.html" style="display:block;text-decoration:none;background:#f5f2e9;color:#253d34;border:1px solid #c6d0bf;border-radius:14px;padding:20px;margin:0 0 20px;line-height:1.7">
+    <strong style="font-size:20px">📖 文件学习地图 →</strong><br>
+    <span>100 个文件：调用图、要完成什么、为什么、优缺点与适用场景。支持按文件名和关卡搜索。</span><br>
+    <small>依据当前代码 · 区分未实现位置、教学模拟和真实接口</small>
+  </a>
+  <nav class="tabs">
+    <button class="tab active" id="tabBtnCheckin" onclick="switchTab('checkin')">📅 打卡表</button>
+    <button class="tab" id="tabBtnReview" onclick="switchTab('review')">📝 复习题</button>
+  </nav>
+
+  <!-- Tab 1 · 打卡表 -->
+  <div id="panel-checkin">
+    <section class="project-intro">
+      <p class="eyebrow">60 天 AI Agent 工程师计划</p><h2>每天一个主题 · 2 小时 · 写代码跑通才算过关</h2>
+      <p>从「会调 API」到「能独立设计 Multi-Agent 系统 + 生产落地」。每天 2 小时怎么分：前 20 分钟复习昨天的关卡，中间 90 分钟学今天的新主题（看懂 → 填空自己填 → 跑通 → 做挑战），后 10 分钟写笔记。</p>
+      <p>每关产出：一个能跑的 .py + 一段笔记，文件放 060/（Phase 1 在 001/ 子目录）。</p>
+      <p><b>写代码跑通才算过关，不背概念。</b>面试连接点：每个主题都问自己一句「面试官问这个，我 30 秒怎么讲？」</p>
+    </section>
+    <details class="schedule"><summary>查看课程表</summary>
+      <h2>课程节奏</h2>
+      <div id="scheduleBody"></div>
+    </details>
+    <div class="stats">
+      <div class="stat"><div class="num" style="color:var(--accent)" id="ckDay">-</div><div class="label">下一关</div></div>
+      <div class="stat"><div class="num" style="color:var(--green)" id="ckDone">0</div><div class="label">文件已完成（自报）</div></div>
+      <div class="stat"><div class="num" style="color:var(--red)" id="ckMiss">0</div><div class="label">错过</div></div>
+      <div class="stat"><div class="num" style="color:var(--yellow)" id="ckStreak">0</div><div class="label">连续打卡</div></div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="ckPbar" style="width:0%"></div></div>
+    <div id="ckPhases"></div>
+
+  </div>
+
+  <!-- Tab 2 · 复习题 -->
+  <div id="panel-review" style="display:none"><p class="project-intro">每天学完新关卡就往 QUIZ_GROUPS 里加一组复习题。答对即时反馈，答错自动进错题本；综合复习模式用来期中期末刷全部已学题。</p>
+    <div class="stats">
+      <div class="stat"><div class="num" id="rvDone">0</div><div class="label">已答</div></div>
+      <div class="stat"><div class="num" style="color:var(--green)" id="rvRight">0</div><div class="label">答对</div></div>
+      <div class="stat"><div class="num" style="color:var(--red)" id="rvWrong">0</div><div class="label">答错</div></div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="rvPbar" style="width:0%"></div></div>
+    <div class="mode-switch">
+      <button class="mode active" id="modeLevel" onclick="setMode('level')">📚 按关卡</button>
+      <button class="mode" id="modeAll" onclick="setMode('all')">🎯 综合复习</button>
+    </div>
+    <div class="score-banner" id="scoreBanner"></div>
+    <div id="rvQuiz"></div>
+    <div class="wrong-list" id="rvWrongList" style="display:none">
+      <h3>📕 错题本（答错的会在这里）</h3>
+      <div id="rvWrongItems"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= 打卡表 ================= */
+var START_DATE = new Date('2026-08-28');
+// 历史材料生成标记，仅表示材料准备；不得自动转换为掌握。
+var AUTO_DONE = {1:true, 2:true, 3:true, 4:true, 5:true, 6:true, 7:true};
+// 用户明确自报：前24个课程文件已完成。独立于材料生成和游戏掌握证据。
+var REPORTED_DONE_THROUGH = 24;
+
+var PLAN = [
+  [1,1,'1-1','ReAct 代码执行','index2.py'],
+  [2,2,'1-2','工具调用 Function Calling','tool_agent.py'],
+  [3,3,'1-3','加记忆 RAG','rag_agent.py'],
+  [4,4,'1-4','多轮对话 + 持久记忆','memory_agent.py'],
+  [5,5,'1-5','流式输出 stream','stream_agent.py'],
+  [6,6,'1-6','Plan-and-Execute','plan_agent.py'],
+  [7,7,'1-7','Reflection 自我修正','reflect_agent.py'],
+  [8,8,'1-8','工具设计进阶(重试/超时/幂等)','robust_tools.py'],
+  [9,9,'1-9','可观测性 tracing','trace_agent.py'],
+  [10,10,'1-10','综合单 Agent','full_agent.py'],
+  [11,11,'1-11','上下文窗口管理(截断/摘要)','ctx_window.py'],
+  [12,12,'1-12','token 计数与成本优化','token_cost.py'],
+  [13,13,'1-13','Prompt 工程(few-shot/CoT)','prompt_eng.py'],
+  [14,14,'1-14','结构化输出(JSON mode+校验)','structured_out.py'],
+  [15,15,'1-15','缓存策略(prompt/结果缓存)','caching.py'],
+  [16,16,'1-16','Prompt Injection 防御','prompt_sec.py'],
+  [17,17,'1-17','对话状态机(FSM 多轮流程)','dialogue_fsm.py'],
+  [18,18,'1-18','异步并发调用(asyncio)','async_tools.py'],
+  [19,19,'1-19','单 agent 评测','agent_eval.py'],
+  [20,20,'1-20','Phase 1 复盘+面试弹药','review_phase1.md'],
+  [21,21,'2-1','层级式 Orchestrator+Workers','orchestrator.py'],
+  [22,22,'2-2','流水线式 pipeline','pipeline.py'],
+  [23,23,'2-3','协作式(对话/辩论)','collab.py'],
+  [24,24,'2-4','竞争式(生成+judge)','competitive.py'],
+  [25,25,'2-5','A2A 通信协议','a2a.py'],
+  [26,26,'2-6','状态与上下文共享','shared_state.py'],
+  [27,27,'2-7','容错与降级','fault_tolerance.py'],
+  [28,28,'2-8','并发与限流','concurrency.py'],
+  [29,29,'2-9','架构选型实战(白板对比)','arch_compare.md'],
+  [30,30,'2-10','Multi-Agent 综合项目','multi_agent_project.py'],
+  [31,31,'2-11','任务分解与子 agent 委派','task_decompose.py'],
+  [32,32,'2-12','消息路由与事件总线','msg_router.py'],
+  [33,33,'2-13','黑板模式(共享记忆)','blackboard.py'],
+  [34,34,'2-14','死锁与循环检测','deadlock.py'],
+  [35,35,'2-15','跨 agent 分布式 tracing','dist_trace.py'],
+  [36,36,'2-16','成本分摊与预算控制','budget.py'],
+  [37,37,'2-17','人机协同(human-in-the-loop)','human_loop.py'],
+  [38,38,'2-18','多 agent 评测','multi_eval.py'],
+  [39,39,'2-19','多 agent 安全与权限隔离','agent_sec.py'],
+  [40,40,'2-20','Phase 2 复盘+架构弹药','review_phase2.md'],
+  [41,41,'3-1','LangChain 重写 1-10','langchain_agent.py'],
+  [42,42,'3-2','LangGraph 状态机','langgraph_agent.py'],
+  [43,43,'3-3','MCP 手写实现','mcp_server.py'],
+  [44,44,'3-4','评估 eval harness','eval_harness.py'],
+  [45,45,'3-5','RAG 进阶(chunking/rerank)','rag_adv.py'],
+  [46,46,'3-6','向量库选型对比','vector_db_compare.md'],
+  [47,47,'3-7','embedding 模型选型','embed_compare.md'],
+  [48,48,'3-8','检索质量评估(recall/NDCG)','retrieval_eval.py'],
+  [49,49,'3-9','LangGraph 进阶(checkpoint/人审)','langgraph_adv.py'],
+  [50,50,'3-10','框架源码导读','langchain_src.md'],
+  [51,51,'3-11','框架选型对比','framework_compare.md'],
+  [52,52,'3-12','Phase 3 复盘+生态弹药','review_phase3.md'],
+  [53,53,'4-1','项目需求拆解与设计','research_agent/design.md'],
+  [54,54,'4-2','实战:联网检索 agent','research_agent/search_agent.py'],
+  [55,55,'4-3','实战:多 agent 协作','research_agent/orchestrator.py'],
+  [56,56,'4-4','实战:报告产出+API','research_agent/app.py'],
+  [57,57,'4-5','服务化(FastAPI)','research_agent/api.py'],
+  [58,58,'4-6','部署上线(Docker/Railway)','deploy.md'],
+  [59,59,'4-7','简历 bullet+系统设计面试','resume_projects.md'],
+  [60,60,'4-8','模拟面试+收口','interview_qa.md'],
+];
+
+var PHASES = [
+  {name:'Phase 1 · 单 Agent 地基', cls:'p1', from:1, to:20},
+  {name:'Phase 2 · 可靠编排与多 Agent 取舍', cls:'p2', from:21, to:40},
+  {name:'Phase 3 · 框架 + 生态', cls:'p3', from:41, to:52},
+  {name:'Phase 4 · 实战 + 面试', cls:'p4', from:53, to:60},
+];
+
+function loadDone() {
+  var merged = {};
+  for (var d = 1; d <= REPORTED_DONE_THROUGH; d++) merged[d] = true;
+  return merged;
+}
+function nextLesson(done) {
+  for (var d = 1; d <= 60; d++) if (!done[d]) return d;
+  return 61;
+}
+function entryOf(day) {
+  for (var i=0;i<PLAN.length;i++) if (day >= PLAN[i][0] && day <= PLAN[i][1]) return PLAN[i];
+  return null;
+}
+function streak(done, tn) {
+  var s = 0;
+  var d = tn;
+  if (!done[d]) d--;  // 今天还没打卡，从昨天开始数
+  for (; d >= 1; d--) { if (done[d]) s++; else break; }
+  return s;
+}
+function renderCheckin() {
+  var done = loadDone();
+  var tn = nextLesson(done);
+  var container = document.getElementById('ckPhases');
+  container.innerHTML = '';
+  var totalDone = 0, totalMiss = 0;
+
+  PHASES.forEach(function(ph) {
+    var sec = document.createElement('div');
+    sec.className = 'phase ' + ph.cls;
+    var grid = document.createElement('div');
+    grid.className = 'grid';
+    var phaseDone = 0;
+
+    for (var d = ph.from; d <= ph.to; d++) {
+      var e = entryOf(d);
+      var cell = document.createElement('div');
+      cell.className = 'day';
+      var isDone = !!done[d];
+      var isToday = (d === tn);
+      if (isDone) { cell.classList.add('done'); totalDone++; phaseDone++; }
+      else if (d < tn) { cell.classList.add('missed'); totalMiss++; }
+      else if (isToday) { cell.classList.add('today'); }
+      else { cell.classList.add('future'); }
+      var lv = e ? e[2] : '-';
+      var tp = e ? e[3] : '';
+      var out = e ? e[4] : '';
+      cell.innerHTML =
+        '<div class="dnum">' + d + '</div>' +
+        '<div class="info"><div class="lv">' + lv + ' · ' + tp + '</div>' +
+        (out ? '<div class="tp">📁 ' + out + '</div>' : '<div class="tp"></div>') + '</div>' +
+        '<div class="check">' + (isDone ? '✓' : '') + '</div>';
+      grid.appendChild(cell);
+    }
+
+    var head = document.createElement('div');
+    head.className = 'phase-head';
+    head.innerHTML = '<span class="dot"></span>' + ph.name + '<span class="cnt">' + phaseDone + '/' + (ph.to - ph.from + 1) + '</span>';
+    sec.appendChild(head);
+    sec.appendChild(grid);
+    container.appendChild(sec);
+  });
+
+  document.getElementById('ckDay').textContent = (tn>=1 && tn<=60) ? tn : '-';
+  document.getElementById('ckDone').textContent = totalDone;
+  document.getElementById('ckMiss').textContent = totalMiss;
+  document.getElementById('ckStreak').textContent = streak(done, tn);
+  document.getElementById('ckPbar').style.width = (totalDone/60*100) + '%';
+}
+
+/* ================= 复习题 ================= */
+// 每个关卡的复习题，以后每天学完新关卡就往 QUIZ_GROUPS 里加一组
+var QUIZ_GROUPS = [
+  {
+    title: '1-4 · 多轮对话 + 持久记忆',
+    key: 'quiz-1-4',
+    phase: 1,
+    questions: [
+      { q:"短期记忆和长期记忆的本质区别是什么？", opts:["短期记忆存向量库，长期记忆存 messages 列表","短期记忆是 messages 会话历史（进程退就没了），长期记忆是落盘的向量库（重启还在）","两者都存磁盘，只是格式不同","短期记忆比长期记忆更持久"], a:1, e:"短期记忆 = messages 列表，只活在本次会话；长期记忆 = Chroma PersistentClient 落盘，跨会话还在。" },
+      { q:"1-4 和 1-3 的本质区别是？", opts:["1-4 用 chromadb.Client()，1-3 用 PersistentClient()","1-4 用 PersistentClient() 落盘，1-3 用 Client() 存内存（退进程消失）","两者没区别","1-4 不需要 embedding"], a:1, e:"1-3 的 Client() 是临时库（内存），1-4 的 PersistentClient 落盘。差一个 Persistent，决定「会话内检索」和「真长期记忆」的分界。" },
+      { q:"PersistentClient(path=\"./memory_db\") 里的 path 指什么？", opts:["固定系统绝对路径","相对「当前工作目录」的落盘路径，首次运行自动创建","远程服务器地址","内存地址"], a:1, e:"./ 是当前工作目录，memory_db 是 Chroma 自动创建的文件夹。在哪跑脚本就在哪生成。" },
+      { q:"collection.add 里为什么用 uuid？", opts:["加密数据","生成唯一 id，避免重复写入时覆盖旧记录","加速检索","压缩存储"], a:1, e:"uuid 生成随机唯一 id。id 重复时 add 是 upsert 会覆盖；随机 id 保证每次是「新增」不是「覆盖」。" },
+      { q:"collection.query 内部做了什么？", opts:["SQL 精确匹配","把查询词 embed 成向量，算余弦相似度排序取 top-n 返回原文","返回全部记录","随机返回 n 条"], a:1, e:"query：查询词→embed→与所有向量算余弦相似度→排序→top-n→返回对应原文。向量只算相似度，返回的是原文。" },
+      { q:"add 和 query 为什么必须用同一个 embedding 函数？", opts:["运行更快","向量没有绝对语义，每个模型是独立坐标系，换模型旧向量和新查询对不上","语法要求","其实可以不同"], a:1, e:"每个 embedding 模型是独立语义空间，坐标互不对应且维度常不同。换模型=换坐标系，检索失效。" },
+      { q:"metadata={\"hnsw:space\":\"cosine\"} 里的 cosine 是什么？", opts:["数据库名称","距离度量方式（余弦距离，看向量方向不看长度）","加密算法","表名"], a:1, e:"cosine 是距离度量（余弦相似度，比方向、对长度免疫），hnsw 是索引算法。" },
+      { q:"get_or_create_collection 的 get_or_create 意味着？", opts:["每次都新建表","幂等：存在就复用，不存在才新建（持久化关键）","删除重建","备份表"], a:1, e:"幂等。第二次运行复用同一张表，记忆才不丢——持久化 vs 临时内存库的核心差异。" },
+      { q:"向量库（Chroma）和关系型库（MySQL）的根本区别？", opts:["向量库查「相等」，MySQL 查「像不像」","向量库做语义相似度检索，MySQL 做精确匹配","完全一样","向量库不支持持久化"], a:1, e:"MySQL 查相等（WHERE name=...），Chroma 查「像不像」（语义 top-k）。agent 要「换个问法也能命中」，所以用向量库。" },
+      { q:"remember 和 recall 的区别？", opts:["remember 读、recall 写","remember 写（add）、recall 读（query）","都是写","都是读"], a:1, e:"remember 走 add 写入长期记忆，recall 走 query 检索 top-n。一个存一个取，合起来是完整记忆闭环。" },
+    ]
+  },
+  {
+    title: '1-5 · 流式输出 stream',
+    key: 'quiz-1-5',
+    phase: 1,
+    questions: [
+      { q:"流式输出（stream=True）和非流式的本质区别是？", opts:["流式更快，非流式更慢","非流式一次返回完整 msg.content 直接读；流式返回「增量迭代器」，逐 chunk 读 delta 自己累积","流式只能输出文本，非流式能调工具","两者返回的数据结构完全一样"], a:1, e:"非流式 create() 一次返回完整 message，直接读 .content 就行；流式 create(stream=True) 返回的是一个迭代器（增量流），要 for chunk in stream 逐片读 delta，再自己拼成完整内容。" },
+      { q:"stream=True 这个参数到底改变了 create() 的什么？", opts:["让模型回答得更快","让返回值从「一次性完整响应对象」变成「可迭代的增量流」","让 temperature 参数失效","让工具调用被禁用"], a:1, e:"stream=True 改变的是返回类型：不再一次性给你完整响应，而是返回一个生成器/迭代器，遍历时逐 chunk 吐出增量 delta。后面 for chunk in stream 才有东西可遍历。" },
+      { q:"流式下 delta.content 是什么？", opts:["完整的回答文本","这一小片文字（可能是一个词甚至几个字），不是完整回答","token 的编号","已生成内容的累积结果"], a:1, e:"每个 chunk 的 delta.content 只是「这一小片」——可能是一个词、几个字甚至一个标点。完整回答要靠你自己把这些片累积起来。" },
+      { q:"代码里为什么写 full_content += delta.content，而不是 full_content = delta.content？", opts:["写错了，应该用 =","因为每片只到一部分，用 += 累积才能拼出完整回答；用 = 会覆盖，最后只剩最后一片","+= 比 = 快","两者没区别"], a:1, e:"delta.content 每片只带来一小段，= 会丢掉之前累积的内容只留最新一片；+= 才是「追加」。这是流式累积的固定写法。" },
+      { q:"print(delta.content, end=\"\", flush=True) 里 end=\"\" 的作用是什么？", opts:["让字体变小","不自动换行（print 默认结尾加换行符，否则每片文字各占一行）","关闭输出","拼接字符串"], a:1, e:"print 默认在结尾加换行符。流式每片都调用 print，不加 end=\"\" 的话每片文字会各占一行，拼出来是竖着的一列而非连续文本。" },
+      { q:"flush=True 的作用是什么？", opts:["清空内存","立即把输出缓冲区刷到屏幕（否则 Python 会攒一批才显示，失去逐字效果）","关闭缓冲区","加速网络请求"], a:1, e:"标准输出默认有缓冲，print 的内容可能攒着不立刻显示。flush=True 强制立即刷到终端，才能看到「逐字吐」的打字机效果，而不是等半天一次性冒出来。" },
+      { q:"流式下工具调用的 arguments 为什么是「分片」？", opts:["服务器故意加密","一段 JSON 字符串在网络传输时被切成多片，每片只到一部分","因为 temperature 太高","其实是一次性给全的"], a:1, e:"流式下 arguments 是一段 JSON 字符串，传输时被切成多片逐片下发，每片只到一部分。必须自己按 index 拼完整，才能 json.loads 取参数。" },
+      { q:"为什么累积工具调用时要按 tcd.index 拼到同一个槽位？", opts:["index 是随机数","一次可能发起多个工具调用，index 表示「第几个调用」，同名调用的分片必须拼到同一个 tool_calls[index]","为了排序","为了去重"], a:1, e:"一次请求里模型可能并行发起多个工具调用（如同时查北京和上海天气）。每个调用的分片带着自己的 index，拼的时候按 index 归位，否则多个调用的参数会互相污染。" },
+      { q:"while len(tool_calls) <= idx 这句在做什么？", opts:["无限循环 bug","为还没出现过的 index 预创建空槽位，保证直接给 tool_calls[idx] 赋值不会越界","清理旧数据","排序工具调用"], a:1, e:"分片可能先到 index=1 的调用（index=0 还没来），直接 tool_calls[1]=... 会 IndexError。这段把列表扩到足够长，每个新槽位初始化为空 dict 再填字段。" },
+      { q:"什么时候才能对累积的 arguments 做 json.loads？", opts:["收到第一片时","流结束、所有分片拼完整之后","任何时候都行","根本不需要 json.loads"], a:1, e:"分片没拼完时 arguments 是不完整 JSON，json.loads 会抛错。必须等 for 循环结束（流读完）拼出完整 JSON，才能 loads 成 dict 取参数。" },
+      { q:"为什么聊天产品几乎都要流式输出？", opts:["为了省服务器电费","降低「首字延迟」（TTFT）——非流式要等整段生成完才返回，流式第一个 chunk 很快到，用户立刻看到反馈","因为流式生成的文字更准确","为了加密传输"], a:1, e:"非流式要等模型把整段生成完才一次性返回，首字延迟高，用户干等。流式第一个 chunk 很快就到，屏幕立刻开始吐字。TTFT（Time To First Token）是衡量这个的核心指标。" },
+      { q:"if not chunk.choices: continue 这个判断的作用？", opts:["没用的防御代码","有些 chunk（如结束标记/空 chunk）没有 choices 内容，跳过避免对空列表取下标报 IndexError","提前结束流","过滤重复内容"], a:1, e:"流中可能夹着不含 choices 的 chunk（如某些结束信号或空 chunk）。不判断的话 chunk.choices[0] 会对空列表取下标直接 IndexError，所以先 continue 跳过。" },
+    ]
+  },
+  {
+    title: '1-6 · Plan-and-Execute',
+    key: 'quiz-1-6',
+    phase: 1,
+    questions: [
+      { q:"Plan-and-Execute 和 ReAct 的本质区别是？", opts:["Plan 比 ReAct 更快","ReAct 每步都想一步做一步；Plan 先一次性规划出完整步骤，再逐步执行","Plan 不用 LLM","两者没区别"], a:1, e:"ReAct 是「想→做→看→再想」每步交错；Plan-and-Execute 是「planner 先出完整计划 → executor 逐步执行」，规划和执行分离。" },
+      { q:"planner 阶段做了什么？", opts:["直接执行任务","让 LLM 输出一个完整 JSON 计划（步骤列表）","调用工具","校验最终结果"], a:1, e:"planner 只做一件事：让 LLM 把任务拆成有序步骤，输出结构化 JSON 计划，供后面 executor 逐步执行。" },
+      { q:"为什么计划要用 JSON 格式？", opts:["好看","结构化，方便代码用 for 循环遍历 steps 逐条执行","加密","省 token"], a:1, e:"JSON 是结构化数据，代码能 plan['steps'] 遍历每条步骤。如果 LLM 输出自由文本，就没法程序化地逐条执行了。" },
+      { q:"json.loads(raw) 在 planner 里起什么作用？", opts:["把 dict 转成字符串","把 LLM 返回的计划字符串解析成 dict，才能遍历 steps","加密计划","校验语法错误"], a:1, e:"LLM 返回的是一段字符串（JSON 文本），json.loads 把它转成 dict，后面的 for s in plan['steps'] 才能遍历。" },
+      { q:"executor 里，计划中某步带了 tool（如 get_weather），代码怎么执行？", opts:["让 LLM 假装调了工具","从 TOOL_FUNCS 取出真实函数，用 s['args'] 参数调用：fn(**s['args'])","跳过这步","再让 LLM 重新规划"], a:1, e:"TOOL_FUNCS[s['tool']] 取出真实 Python 函数，**s['args'] 把参数字典展开成关键字参数调用。这步是「真执行工具」，不是 LLM 模拟。" },
+      { q:"计划中某步不带 tool 时，executor 怎么做？", opts:["跳过","让 LLM 基于「已完成结果」写这一步的内容","直接报错","重新调用 planner"], a:1, e:"无工具步骤靠 LLM 自己写内容（如「根据天气写一句文案」）。它需要知道前面步骤的结果，才能写出连贯的内容。" },
+      { q:"无工具步骤为什么要把「已完成结果」注入上下文？", opts:["让 LLM 更快","否则 LLM 不知道前面做了啥，写出的内容会和前面断档","省 token","其实不用注入"], a:1, e:"把「任务 + 已完成结果 + 当前步骤」一起喂给 LLM，它才知道上下文。漏掉已完成结果，写出来的东西就衔接不上。" },
+      { q:"Plan-and-Execute 最大的缺点是？", opts:["太慢","计划一旦定下，执行中不易调整；发现计划错了难以及时改","太贵","不支持工具调用"], a:1, e:"Plan 是先规划后执行，中间如果发现计划不对，朴素版只能硬着头皮走完。这是它和 ReAct 相比最大的短板。" },
+      { q:"什么场景更适合 Plan-and-Execute（而不是 ReAct）？", opts:["环境多变、需要边走边看","步骤多、目标明确的任务","单步的简单任务","任何场景都行"], a:1, e:"步骤多、目标明确 → Plan 先规划好全局、省 token、看得清；环境多变 → ReAct 每步重新决策更灵活。" },
+      { q:"计划执行到一半发现不对，生产级的补救做法是？", opts:["无视，硬走完","关键节点加「反思」检查，需要时重新规划（replan）","从头再来","让用户重输需求"], a:1, e:"生产级是「计划 + 反思 + 重规划」闭环：关键节点让 LLM 反思剩余计划，发现不对就 replan。这也是 1-7 Reflection 要讲的内容。" },
+    ]
+  },
+  {
+    title: '1-7 · Reflection 自我修正',
+    key: 'quiz-1-7',
+    phase: 1,
+    questions: [
+      { q:"Reflection 自我修正 和 ReAct 的本质区别是？", opts:["Reflection 更快","ReAct 每步想一步做一步；Reflection 是执行完回头看结果、反思、重试","Reflection 不用 LLM","两者一样"], a:1, e:"ReAct 是过程驱动（每步想+做+看）；Reflection 是结果驱动（做完→反思→重试）。" },
+      { q:"solve() 里的 feedback 参数是干嘛的？", opts:["控制温度","把上一轮反思的意见喂回 LLM，让它知道上次错哪","加密","没用"], a:1, e:"第一轮 feedback=None 直接作答；第二轮把反思意见拼进 user 消息，LLM 才知道上次错在哪。" },
+      { q:"reflect() 函数在做什么？", opts:["直接解题","让 LLM 当「批改老师」，检查第一轮答案找错","调工具","保存结果"], a:1, e:"reflect 把「题目 + 第一轮答案」喂给一个批改老师角色，让它挑错。反思的本质就是用 LLM 当自己的 critic。" },
+      { q:"反思意见为什么必须传回第二轮 solve？", opts:["好看","否则反思白做，第二轮不知道上次错哪","省 token","其实不用传"], a:1, e:"反思意见不传回，第二轮就是无脑重答一遍，和第一轮没区别。传回才形成闭环。" },
+      { q:"玩具里的「批改老师」（LLM 自己批改）在生产里是最弱的，为什么？", opts:["太慢","LLM 没有 ground truth，可能把对判错、把错漏掉","太贵","有语法错误"], a:1, e:"LLM 批改只是在「猜」你对不对——没有标准答案，它会把对的判错、把错的漏掉。" },
+      { q:"生产里「批改」优先用什么？", opts:["LLM 的意见","可验证信号：跑代码拿报错、跑测试、linter","随机猜","用户手动批"], a:1, e:"优先用确定性的可验证信号（报错、测试、linter），因为它们是客观事实，不是 LLM 的「我觉得」。" },
+      { q:"什么时候才退回 LLM-as-judge？", opts:["有测试的时候","无可验证信号时（主观任务，如「这文案好不好」）","任何时候","永远不用"], a:1, e:"只有没有可验证信号（主观任务）才退回 LLM-as-judge，且要精心设计 prompt + 打分 rubric。" },
+      { q:"Reflexion 框架的三个角色是？", opts:["读/写/删","actor（作答）+ evaluator（评估）+ self-reflection（反思）","输入/处理/输出","前端/后端/数据库"], a:1, e:"Reflexion 核心是 actor 作答、evaluator 评估（常用测试/ground truth）、self-reflection 生成口头反思存进记忆。" },
+      { q:"反思 和 多模型投票 的区别？", opts:["一样","反思是同一模型改自己的答案；投票是多个模型/多次采样取多数","投票更快","反思不用 LLM"], a:1, e:"两条不同路线：反思是「回头看改」，投票是「采样取众」。生产里常组合用。" },
+      { q:"反思为什么能提高正确率？", opts:["玄学","把「作答」和「检查」拆成两个独立推理过程，检查时只专注找错","温度更高","其实不能提高"], a:1, e:"LLM 一次性生成容易「顺着惯性」写错；反思把它切成「写」和「检查」两步，检查时角色切换、只专注找错，更容易发现。" },
+    ]
+  },
+  {
+    title: '1-8 · 工具设计进阶',
+    key: 'quiz-1-8',
+    phase: 1,
+    questions: [
+      { q:"生产级工具要包哪四层防护？", opts:["读/写/删/改","重试 / 超时 / 幂等 / 降级","登录/加密/备份/日志","缓存/索引/分页/排序"], a:1, e:"重试扛偶发故障、超时防挂死、幂等防重复副作用、降级保证可用。这是 agent 稳定性的基础。" },
+      { q:"重试（retry）的作用是？", opts:["加速","偶发故障（网络抖动）自动重试几次，扛过瞬时错误","加密","省 token"], a:1, e:"偶发故障是瞬时的，重试几次大概率就过了。重试扛的是「瞬时错误」，不是「确定性错误」。" },
+      { q:"超时（timeout）的作用是？", opts:["加速","工具卡死时不无限等，超时判失败进入重试","省电","美观"], a:1, e:"工具可能卡死（后端挂了不回包）。不设超时，一个卡死的调用能把整个 agent 拖死。" },
+      { q:"幂等（idempotent）的作用是？", opts:["加速","重复请求不重复生效（防重复提交/重复扣款）","加密","压缩"], a:1, e:"幂等保证「同一个请求重复发也只有一个效果」。下单、扣款这类有副作用的操作必须幂等。" },
+      { q:"降级（fallback）的作用是？", opts:["提升速度","彻底失败时给兜底，保证服务可用（宁可次优不崩）","美化","省内存"], a:1, e:"重试耗尽后不能崩，给个「还能用」的兜底（默认值/缓存/旧数据）。降级保的是「可用性」。" },
+      { q:"缓存幂等 和 请求ID幂等 的区别？", opts:["一样","缓存按「内容」去重；请求ID按「请求」去重（拦重复提交）","请求ID更快","缓存不用内存"], a:1, e:"缓存：同一城市就复用。请求ID：同一次请求重复提交才拦。有副作用的操作必须用请求ID，否则重复点击扣两次钱。" },
+      { q:"重试为什么要「退避」（越等越久）？", opts:["好看","给后端恢复时间，避免立刻连续打","省 token","不用退避"], a:1, e:"立刻连续重试等于变相压后端；退避（指数增长）给故障留恢复时间。" },
+      { q:"退避为什么要加「抖动」（随机）？", opts:["好看","防止所有客户端同时重试打爆后端（惊群）","加密","不用加"], a:1, e:"如果所有客户端同时失败、同时重试，会在同一时刻打爆后端。加随机抖动把重试时间打散。" },
+      { q:"超时设太长的后果是？", opts:["更快","卡死的调用占资源不放，拖慢整个链路","更准","没后果"], a:1, e:"卡死的调用占着线程/连接不放，用户干等，整个链路被拖慢。" },
+      { q:"超时设太短 + 重试，可能引发什么恶性循环？", opts:["更快","重试风暴/雪崩：超时→重试→流量放大→压垮后端→更多超时","更省","没后果"], a:1, e:"超时触发重试，重试放大流量，流量压垮后端，后端更慢，更多超时……恶性循环。面试问「重试的坑」答这个。" },
+    ]
+  },
+];
+
+var rvState = (function(){ try { return JSON.parse(localStorage.getItem('quiz-state')) || {}; } catch(e){ return {}; } })();
+var rvWrong = rvState.wrong || [];
+
+function saveRvState() { rvState.wrong = rvWrong; localStorage.setItem('quiz-state', JSON.stringify(rvState)); }
+
+var rvMode = 'level';  // 'level' 按关卡 / 'all' 综合复习（期中期末刷全部已学题）
+
+function setMode(m) {
+  rvMode = m;
+  document.getElementById('modeLevel').classList.toggle('active', m==='level');
+  document.getElementById('modeAll').classList.toggle('active', m==='all');
+  renderReview();
+}
+
+function renderReview() {
+  var container = document.getElementById('rvQuiz');
+  container.innerHTML = '';
+  var total = 0, done = 0, right = 0, w = 0;
+
+  // 1. 组装所有题（扁平化）
+  var list = [];
+  // 新关卡放最上面：从后往前遍历 QUIZ_GROUPS（以后新加关卡 append 到数组末尾就会自动排最前）
+  for (var gi = QUIZ_GROUPS.length - 1; gi >= 0; gi--) {
+    var group = QUIZ_GROUPS[gi];
+    group.questions.forEach(function(item, i) {
+      list.push({ group: group, i: i, item: item, key: group.key + '::' + i });
+    });
+  }
+
+  // 2. 综合复习：打乱顺序
+  if (rvMode === 'all') {
+    for (var i = list.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = list[i]; list[i] = list[j]; list[j] = t;
+    }
+  }
+
+  // 3. 渲染单题
+  function renderQ(parent, entry, seq) {
+    var group = entry.group, i = entry.i, item = entry.item, key = entry.key;
+    var d = rvState[key];
+    var st = { done: 0, right: 0, wrong: 0 };
+
+    var box = document.createElement('div');
+    box.className = 'q';
+    var qn = document.createElement('div');
+    qn.className = 'qn';
+    qn.textContent = '第 ' + seq + ' 题';
+    if (d !== undefined) {
+      st.done = 1;
+      var tag = document.createElement('span');
+      tag.className = 'tag ' + (d === item.a ? 'right' : 'bad');
+      tag.textContent = d === item.a ? '✓ 对' : '✗ 错';
+      qn.appendChild(tag);
+      if (d === item.a) st.right = 1; else st.wrong = 1;
+    }
+    box.appendChild(qn);
+
+    var qt = document.createElement('div');
+    qt.className = 'qt';
+    qt.textContent = item.q;
+    box.appendChild(qt);
+
+    item.opts.forEach(function(opt, oi) {
+      var btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.textContent = String.fromCharCode(65+oi) + '. ' + opt;
+      if (d !== undefined) {
+        btn.disabled = true;
+        if (oi === item.a) btn.classList.add('correct');
+        else if (oi === d) btn.classList.add('wrong');
+      } else {
+        btn.onclick = function() { answerRv(group.key, i, oi); };
+      }
+      box.appendChild(btn);
+    });
+
+    var ex = document.createElement('div');
+    ex.className = 'explain' + (d !== undefined ? ' show' : '');
+    ex.innerHTML = '<b>解析：</b>' + item.e;
+    box.appendChild(ex);
+
+    parent.appendChild(box);
+    return st;
+  }
+
+  // 4. 按模式渲染
+  if (rvMode === 'all') {
+    list.forEach(function(entry, idx) {
+      var st = renderQ(container, entry, idx + 1);
+      total++; done += st.done; right += st.right; w += st.wrong;
+    });
+    var banner = document.getElementById('scoreBanner');
+    if (done === total && total > 0) {
+      var rate = Math.round(right / total * 100);
+      banner.innerHTML = '🎉 综合复习完成 · 正确率 <b>' + rate + '%</b>（' + right + '/' + total + '）';
+      banner.className = 'score-banner show';
+    } else {
+      banner.className = 'score-banner';
+    }
+  } else {
+    document.getElementById('scoreBanner').className = 'score-banner';
+    var curKey = null, curBox = null;
+    list.forEach(function(entry) {
+      if (entry.group.key !== curKey) {
+        curKey = entry.group.key;
+        curBox = document.createElement('div');
+        curBox.className = 'quiz-group';
+        var h = document.createElement('h2');
+        h.textContent = entry.group.title;
+        curBox.appendChild(h);
+        container.appendChild(curBox);
+      }
+      var st = renderQ(curBox, entry, entry.i + 1);
+      total++; done += st.done; right += st.right; w += st.wrong;
+    });
+  }
+
+  // 5. 统计
+  document.getElementById('rvDone').textContent = done;
+  document.getElementById('rvRight').textContent = right;
+  document.getElementById('rvWrong').textContent = w;
+  document.getElementById('rvPbar').style.width = (total ? done/total*100 : 0) + '%';
+
+  // 6. 错题本
+  var wl = document.getElementById('rvWrongList');
+  if (rvWrong.length) {
+    wl.style.display = 'block';
+    var html = '';
+    rvWrong.forEach(function(id) {
+      var parts = id.split('::');
+      var gk = parts[0];
+      var qi = parseInt(parts[1], 10);
+      var group = QUIZ_GROUPS.find(function(gr){ return gr.key === gk; });
+      if (group && group.questions[qi]) {
+        var item = group.questions[qi];
+        html += '<p><b>' + group.title + ' 第' + (qi+1) + '题：</b>' + item.q + '（答案 ' + String.fromCharCode(65+item.a) + '）</p>';
+      }
+    });
+    document.getElementById('rvWrongItems').innerHTML = html;
+  } else {
+    wl.style.display = 'none';
+  }
+}
+
+function answerRv(gid, i, oi) {
+  var group = QUIZ_GROUPS.find(function(gr){ return gr.key === gid; });
+  if (!group) return;
+  var key = gid + '::' + i;
+  rvState[key] = oi;
+  if (oi !== group.questions[i].a) {
+    if (rvWrong.indexOf(key) === -1) rvWrong.push(key);
+  }
+  saveRvState();
+  renderReview();
+}
+
+/* ================= tab 切换 ================= */
+function switchTab(name) {
+  document.getElementById('panel-checkin').style.display = name === 'checkin' ? 'block' : 'none';
+  document.getElementById('panel-review').style.display = name === 'review' ? 'block' : 'none';
+  document.getElementById('tabBtnCheckin').classList.toggle('active', name === 'checkin');
+  document.getElementById('tabBtnReview').classList.toggle('active', name === 'review');
+}
+
+/* ================= 课程表 ================= */
+var WEEK_SCHEDULE = [
+  { week: '第 1 周', days: [
+    { dow:'周一', type:'study', text:'1-1 ~ 1-8', note:'单 Agent 前半', heavy:false },
+    { dow:'周二', type:'catchup', text:'补课' },
+    { dow:'周三', type:'study', text:'1-9 ~ 1-16', note:'单 Agent 后半', heavy:false },
+    { dow:'周四', type:'study', text:'1-17 ~ 2-4', note:'单Agent收尾 + 多Agent前四', heavy:true },
+    { dow:'周五', type:'math', text:'初中数学' },
+    { dow:'周六', type:'study', text:'2-5 ~ 2-10', note:'A2A → 综合项目 · 6节(直播)', heavy:true },
+    { dow:'周日', type:'study', text:'2-11 ~ 2-16', note:'委派 → 成本预算 · 6节(直播)', heavy:true },
+  ]},
+  { week: '第 2 周', days: [
+    { dow:'周一', type:'study', text:'2-17 ~ 3-4', note:'多Agent收尾 → eval', heavy:false },
+    { dow:'周二', type:'catchup', text:'补课' },
+    { dow:'周三', type:'study', text:'3-5 ~ 3-12', note:'RAG进阶 → Phase3复盘', heavy:false },
+    { dow:'周四', type:'study', text:'4-1 ~ 4-8', note:'实战项目 → 收口', heavy:true },
+    { dow:'周五', type:'math', text:'初中数学' },
+    { dow:'周六', type:'buffer', text:'复盘 / 面试弹药' },
+    { dow:'周日', type:'buffer', text:'复盘 / 面试弹药' },
+  ]},
+];
+
+function renderSchedule() {
+  var el = document.getElementById('scheduleBody');
+  if (!el) return;
+  var html = '';
+  WEEK_SCHEDULE.forEach(function(w) {
+    html += '<div class="week"><div class="week-title">' + w.week + '</div>';
+    w.days.forEach(function(day) {
+      var cls = 'row ' + (day.type || '');
+      var content;
+      if (day.type === 'study') {
+        content = '<b>' + day.text + '</b>';
+        if (day.note) content += ' <span class="note">' + day.note + '</span>';
+        if (day.heavy) content += ' <span class="heavy">⚠重课</span>';
+      } else {
+        content = day.text;
+      }
+      html += '<div class="' + cls + '"><span class="dow">' + day.dow + '</span><span class="content">' + content + '</span></div>';
+    });
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+</script>
+<script>
+/* ================= 初始化 ================= */
+renderCheckin();
+renderReview();
+renderSchedule();
+</script>
+</body>
+</html>

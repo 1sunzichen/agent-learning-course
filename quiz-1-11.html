@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent 学习 · 1-11 上下文窗口管理 复习题</title>
+<style>
+  :root { --bg:#0f0f1a; --card:#1a1a2e; --accent:#4a9eff; --green:#2ecc71; --red:#e74c3c; --yellow:#f39c12; --text:#e0e0e0; --sub:#888; --border:#2a2a3e; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:20px; }
+  .container { max-width:720px; margin:0 auto; }
+  header { text-align:center; padding:16px 0; }
+  header h1 { font-size:22px; color:#fff; margin-bottom:6px; }
+  header p { font-size:13px; color:var(--sub); }
+  .stats { display:flex; gap:10px; margin:14px 0; flex-wrap:wrap; }
+  .stat { flex:1; min-width:80px; padding:10px; border-radius:10px; background:var(--card); border:1px solid var(--border); text-align:center; }
+  .stat .num { font-size:20px; font-weight:700; }
+  .stat .label { font-size:11px; color:var(--sub); margin-top:2px; }
+  .progress-wrap { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:4px; margin-bottom:16px; }
+  .progress-bar { height:10px; border-radius:7px; background:linear-gradient(90deg,var(--green),var(--accent)); transition:width .3s; }
+  .q { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:14px; }
+  .q .qn { font-size:14px; color:var(--accent); font-weight:700; margin-bottom:8px; }
+  .q .qt { font-size:16px; color:#fff; margin-bottom:14px; line-height:1.5; }
+  .opt { display:block; width:100%; text-align:left; padding:11px 14px; margin-bottom:8px; border-radius:9px; background:#16162a; border:1px solid var(--border); color:var(--text); cursor:pointer; font-size:14px; transition:.12s; }
+  .opt:hover { border-color:var(--accent); }
+  .opt.correct { background:rgba(46,204,113,.15); border-color:var(--green); color:var(--green); }
+  .opt.wrong { background:rgba(231,76,60,.15); border-color:var(--red); color:var(--red); }
+  .opt:disabled { cursor:default; opacity:.85; }
+  .explain { display:none; margin-top:10px; padding:12px; border-radius:9px; background:rgba(74,158,255,.08); border:1px solid rgba(74,158,255,.25); font-size:13px; line-height:1.6; color:#c8d8e8; }
+  .explain.show { display:block; }
+  .explain b { color:var(--accent); }
+  .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:6px; margin-left:6px; }
+  .tag.right { background:rgba(46,204,113,.2); color:var(--green); }
+  .tag.bad { background:rgba(231,76,60,.2); color:var(--red); }
+  .wrong-list { margin-top:18px; padding:14px; border-radius:12px; background:var(--card); border:1px solid var(--border); }
+  .wrong-list h3 { font-size:14px; color:var(--red); margin-bottom:8px; }
+  .wrong-list p { font-size:13px; color:var(--sub); }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🧠 Agent 学习 · 1-11 上下文窗口管理 复习题</h1>
+    <p>昨天学了 1-11，点选项即时判断 · 答错自动进错题本</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="stDone">0</div><div class="label">已答</div></div>
+    <div class="stat"><div class="num" id="stRight" style="color:var(--green)">0</div><div class="label">答对</div></div>
+    <div class="stat"><div class="num" id="stWrong" style="color:var(--red)">0</div><div class="label">答错</div></div>
+  </div>
+
+  <div class="progress-wrap"><div class="progress-bar" id="pbar" style="width:0%"></div></div>
+
+  <div id="quiz"></div>
+
+  <div class="wrong-list" id="wrongList" style="display:none">
+    <h3>📕 错题本（本页答错的）</h3>
+    <div id="wrongItems"></div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "「上下文窗口」是什么？",
+    opts: ["显示器大小", "LLM 一次能看进去的内容上限（token 数）", "内存大小", "硬盘空间"],
+    a: 1,
+    e: "LLM 一次能处理的内容有上限（如 deepseek-chat 64K token），对话越聊越长迟早撞窗。"
+  },
+  {
+    q: "对话超窗的后果是？",
+    opts: ["没影响", "报错 / 丢信息 / 变贵", "跑得更快", "更省 token"],
+    a: 1,
+    e: "超窗会报错、或被迫丢信息、或整段历史每次重发越来越贵。"
+  },
+  {
+    q: "上下文窗口的四种管理策略？",
+    opts: ["增删改查", "截断 / 摘要 / 滑动窗口 / RAG 召回", "登录/加密/备份/日志", "缓存/索引/分页/排序"],
+    a: 1,
+    e: "截断直接砍、摘要用 LLM 压、滑动窗口只留最近 N 条、RAG 召回存向量库按需取。"
+  },
+  {
+    q: "截断（truncation）是什么？",
+    opts: ["直接砍掉最早的，简单但丢信息", "用 LLM 压缩", "存向量库", "保留全部"],
+    a: 0,
+    e: "截断最省事但不安全，可能把关键信息砍掉。适合「近期对话才重要」的场景。"
+  },
+  {
+    q: "摘要（summarization）是什么？",
+    opts: ["直接砍掉", "LLM 把早期对话压成一段，留信息丢细节", "存向量库", "保留全部原文"],
+    a: 1,
+    e: "摘要保骨架、丢细节。本关演示的就是这个策略——把最旧的对话 summarize 成一段。"
+  },
+  {
+    q: "「近保留、远摘要」的分界（KEEP_RECENT）对应什么思路？",
+    opts: ["纯截断", "滑动窗口 + 摘要的组合", "纯 RAG", "无所谓"],
+    a: 1,
+    e: "rest[-KEEP_RECENT:] 留最近原文（用户正在聊的），rest[:-KEEP_RECENT] 拿去摘要（更早的）。这是组合思路。"
+  },
+  {
+    q: "RAG 召回策略的优缺点？",
+    opts: ["最省窗口，但要额外基建（向量库+embedding）", "最省事", "不用任何基建", "没有缺点"],
+    a: 0,
+    e: "历史全存向量库、按需召回，窗口最省，但要向量库+embedding 基建，且有召回遗漏风险。"
+  },
+  {
+    q: "摘要策略最大的坑是什么？",
+    opts: ["跑得太快", "丢关键细节（数字/指令/边界条件）导致后面答错", "太便宜", "没有坑"],
+    a: 1,
+    e: "摘要可能把「具体数字、精确指令、边界条件」压丢，导致 agent 后面答错。"
+  },
+  {
+    q: "摘要本身要花钱吗？",
+    opts: ["不要", "要，每次摘要也是一次 LLM 调用，有 token 成本", "看情况", "免费"],
+    a: 1,
+    e: "summarize() 本质是再调一次 LLM，有 token 成本。这是摘要策略的隐性开销。"
+  },
+  {
+    q: "生产里摘要和 RAG 召回怎么配合？",
+    opts: ["不配合", "摘要保骨架，RAG 保细节", "只用摘要", "只用 RAG"],
+    a: 1,
+    e: "摘要保住整体脉络（骨架），原文存向量库按需召回细节（血肉），两者组合才稳。"
+  },
+];
+
+const KEY = 'quiz-1-11-state';
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
+function save(o) { localStorage.setItem(KEY, JSON.stringify(o)); }
+
+let state = load();
+let wrong = state.wrong || [];
+
+const quiz = document.getElementById('quiz');
+const stDone = document.getElementById('stDone');
+const stRight = document.getElementById('stRight');
+const stWrong = document.getElementById('stWrong');
+const pbar = document.getElementById('pbar');
+const wrongList = document.getElementById('wrongList');
+const wrongItems = document.getElementById('wrongItems');
+
+function render() {
+  quiz.innerHTML = '';
+  let done = 0, right = 0, w = 0;
+  QUESTIONS.forEach((item, i) => {
+    const d = state[i];
+    const box = document.createElement('div');
+    box.className = 'q';
+    const qn = document.createElement('div');
+    qn.className = 'qn';
+    qn.textContent = '第 ' + (i+1) + ' 题';
+    if (d !== undefined) {
+      done++;
+      const tag = document.createElement('span');
+      tag.className = 'tag ' + (d === item.a ? 'right' : 'bad');
+      tag.textContent = d === item.a ? '✓ 对' : '✗ 错';
+      qn.appendChild(tag);
+      if (d === item.a) right++; else w++;
+    }
+    box.appendChild(qn);
+    const qt = document.createElement('div');
+    qt.className = 'qt';
+    qt.textContent = item.q;
+    box.appendChild(qt);
+    item.opts.forEach((opt, oi) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.textContent = String.fromCharCode(65+oi) + '. ' + opt;
+      if (d !== undefined) {
+        btn.disabled = true;
+        if (oi === item.a) btn.classList.add('correct');
+        else if (oi === d) btn.classList.add('wrong');
+      } else {
+        btn.onclick = () => answer(i, oi);
+      }
+      box.appendChild(btn);
+    });
+    const ex = document.createElement('div');
+    ex.className = 'explain' + (d !== undefined ? ' show' : '');
+    ex.innerHTML = '<b>解析：</b>' + item.e;
+    box.appendChild(ex);
+    quiz.appendChild(box);
+  });
+  stDone.textContent = done;
+  stRight.textContent = right;
+  stWrong.textContent = w;
+  pbar.style.width = (done / QUESTIONS.length * 100) + '%';
+  if (wrong.length) {
+    wrongList.style.display = 'block';
+    wrongItems.innerHTML = wrong.map(wi => {
+      const item = QUESTIONS[wi];
+      return '<p><b>第' + (wi+1) + '题：</b>' + item.q + '（正确答案：' + String.fromCharCode(65+item.a) + '）</p>';
+    }).join('');
+  } else {
+    wrongList.style.display = 'none';
+  }
+}
+
+function answer(i, oi) {
+  state[i] = oi;
+  if (oi !== QUESTIONS[i].a) {
+    if (wrong.indexOf(i) === -1) wrong.push(i);
+  }
+  state.wrong = wrong;
+  save(state);
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

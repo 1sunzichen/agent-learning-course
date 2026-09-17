@@ -1,0 +1,14 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="hasCycle · L24",fillcolor="#e1eee9",fontcolor="#203c33"];
+n1 [label="detectLoop · L52",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="main · L66",fillcolor="#e1eee9",fontcolor="#203c33"];
+n3 [label="程序入口",fillcolor="#243e36",fontcolor="#ffffff"];
+n4 [label="dfs",fillcolor="#ffe4bb",fontcolor="#203c33"];
+n3 -> n2 [label="入口",style="solid"];
+n0 -> n4 [label="L34, L43",style="dashed"];
+n2 -> n0 [label="L73",style="solid"];
+n2 -> n1 [label="L81, L92",style="solid"];
+}

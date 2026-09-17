@@ -1,0 +1,12 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="has_permission · L36",fillcolor="#e1eee9",fontcolor="#203c33"];
+n1 [label="execute · L44",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="main · L62",fillcolor="#e1eee9",fontcolor="#203c33"];
+n3 [label="模块顶层 / 条件入口",fillcolor="#243e36",fontcolor="#ffffff"];
+n1 -> n0 [label="L47",style="solid"];
+n2 -> n1 [label="L78",style="solid"];
+n3 -> n2 [label="L88",style="solid"];
+}

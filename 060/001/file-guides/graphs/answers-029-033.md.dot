@@ -1,0 +1,20 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="带着当前文件/问题阅读",fillcolor="#243e36",fontcolor="#ffffff"];
+n1 [label="关卡 2-11 ~ 2-15 填空答案（029 ~ 033）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="029.py（关卡 2-11 · 任务分解与子 agent 委派）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n3 [label="030.py（关卡 2-12 · 消息路由与事件总线）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n4 [label="031.py（关卡 2-13 · 黑板模式/共享记忆）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n5 [label="032.py（关卡 2-14 · 死锁与循环检测）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n6 [label="033.py（关卡 2-15 · 跨 agent 分布式 tracing）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n7 [label="回到练习验证并解释取舍",fillcolor="#e1eee9",fontcolor="#203c33"];
+n0 -> n1 [label="阅读路径",style="solid"];
+n1 -> n2 [label="阅读路径",style="solid"];
+n2 -> n3 [label="阅读路径",style="solid"];
+n3 -> n4 [label="阅读路径",style="solid"];
+n4 -> n5 [label="阅读路径",style="solid"];
+n5 -> n6 [label="阅读路径",style="solid"];
+n6 -> n7 [label="应用",style="solid"];
+}

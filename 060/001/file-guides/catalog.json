@@ -1,0 +1,1470 @@
+[
+  {
+    "name": "001.py",
+    "title": "跨会话记忆",
+    "course": "1-4 · 全课程第 4 节",
+    "key": "1-4",
+    "kind": "py",
+    "hash": "f0bac7cdb862",
+    "calls": 38,
+    "functions": 3,
+    "notes": [
+      "仍有下划线占位表达式，源文件行号：49, 67, 68, 79, 80。相应路径在补完前不能正常执行。"
+    ],
+    "purpose": "把值得保留的信息写入向量库，下次用问题检索回来。",
+    "blanks": [
+      49,
+      67,
+      68,
+      79,
+      80
+    ]
+  },
+  {
+    "name": "003.py",
+    "title": "流式输出与工具调用",
+    "course": "1-5 · 全课程第 5 节",
+    "key": "1-5",
+    "kind": "py",
+    "hash": "21aad0dd5140",
+    "calls": 12,
+    "functions": 2,
+    "notes": [
+      "模型请求与本地工具是不同边界：这些文件中的天气工具使用示例逻辑，不能将示例天气当成实时查询结果。"
+    ],
+    "purpose": "逐段接收模型输出；工具参数收齐后再调用工具，把结果交回模型。",
+    "blanks": []
+  },
+  {
+    "name": "005.py",
+    "title": "先计划再执行",
+    "course": "1-6 · 全课程第 6 节",
+    "key": "1-6",
+    "kind": "py",
+    "hash": "63a35140c76d",
+    "calls": 32,
+    "functions": 3,
+    "notes": [
+      "模型请求与本地工具是不同边界：这些文件中的天气工具使用示例逻辑，不能将示例天气当成实时查询结果。"
+    ],
+    "purpose": "先生成步骤，再让执行器按步骤调用工具并汇总。",
+    "blanks": []
+  },
+  {
+    "name": "007.py",
+    "title": "反思与修订",
+    "course": "1-7 · 全课程第 7 节",
+    "key": "1-7",
+    "kind": "py",
+    "hash": "0e84ce68cc9e",
+    "calls": 22,
+    "functions": 2,
+    "notes": [],
+    "purpose": "先回答，再让模型检查答案，最后根据检查意见修订。",
+    "blanks": []
+  },
+  {
+    "name": "008.py",
+    "title": "工具超时与重试",
+    "course": "1-8 · 全课程第 8 节",
+    "key": "1-8",
+    "kind": "py",
+    "hash": "d47b13d301e4",
+    "calls": 18,
+    "functions": 2,
+    "notes": [
+      "get_weather 用随机故障/等待模拟服务。Future.result(timeout=...) 只限制等待结果，不会杀掉线程；线程池上下文退出可能继续等待任务。"
+    ],
+    "purpose": "给天气工具增加失败重试、超时处理和结果缓存。",
+    "blanks": []
+  },
+  {
+    "name": "009.py",
+    "title": "单 Agent 调用记录",
+    "course": "1-9 · 全课程第 9 节",
+    "key": "1-9",
+    "kind": "py",
+    "hash": "ef867db26321",
+    "calls": 40,
+    "functions": 3,
+    "notes": [
+      "模型请求与本地工具是不同边界：这些文件中的天气工具使用示例逻辑，不能将示例天气当成实时查询结果。"
+    ],
+    "purpose": "把模型和工具执行过程记下来，展示调用与耗时。",
+    "blanks": []
+  },
+  {
+    "name": "010.py",
+    "title": "完整单 Agent",
+    "course": "1-10 · 全课程第 10 节",
+    "key": "1-10",
+    "kind": "py",
+    "hash": "6a0ea9536da7",
+    "calls": 50,
+    "functions": 5,
+    "notes": [
+      "模型请求与本地工具是不同边界：这些文件中的天气工具使用示例逻辑，不能将示例天气当成实时查询结果。",
+      "源码存在 eval 调用。请先看表达式限制条件；调用图只能说明它被使用，不能证明输入已被安全限制。"
+    ],
+    "purpose": "把工具分发、错误处理和记录接入同一个模型循环。",
+    "blanks": []
+  },
+  {
+    "name": "011.py",
+    "title": "上下文窗口管理",
+    "course": "1-11 · 全课程第 11 节",
+    "key": "1-11",
+    "kind": "py",
+    "hash": "f640b0cc8a99",
+    "calls": 26,
+    "functions": 3,
+    "notes": [],
+    "purpose": "估算历史长度，超出阈值时压缩历史并保留近期消息。",
+    "blanks": []
+  },
+  {
+    "name": "012.py",
+    "title": "Token 与费用估算",
+    "course": "1-12 · 全课程第 12 节",
+    "key": "1-12",
+    "kind": "py",
+    "hash": "297d2edb4856",
+    "calls": 28,
+    "functions": 3,
+    "notes": [],
+    "purpose": "按输入和输出用量分别计算费用，并与估算比较。",
+    "blanks": []
+  },
+  {
+    "name": "013.py",
+    "title": "提示词策略对比",
+    "course": "1-13 · 全课程第 13 节",
+    "key": "1-13",
+    "kind": "py",
+    "hash": "018d5897a3d1",
+    "calls": 25,
+    "functions": 5,
+    "notes": [],
+    "purpose": "对同类问题尝试直接提问、示例、分步提示和角色提示。",
+    "blanks": []
+  },
+  {
+    "name": "014.py",
+    "title": "结构化结果",
+    "course": "1-14 · 全课程第 14 节",
+    "key": "1-14",
+    "kind": "py",
+    "hash": "066f57c8a408",
+    "calls": 17,
+    "functions": 1,
+    "notes": [],
+    "purpose": "让模型输出 JSON，解析失败时反馈错误并重试。",
+    "blanks": []
+  },
+  {
+    "name": "015.py",
+    "title": "请求缓存",
+    "course": "1-15 · 全课程第 15 节",
+    "key": "1-15",
+    "kind": "py",
+    "hash": "332e61ac7ae2",
+    "calls": 18,
+    "functions": 1,
+    "notes": [],
+    "purpose": "相同请求再次出现时优先返回已保存的响应。",
+    "blanks": []
+  },
+  {
+    "name": "016.py",
+    "title": "提示注入实验",
+    "course": "1-16 · 全课程第 16 节",
+    "key": "1-16",
+    "kind": "py",
+    "hash": "5ece412131ae",
+    "calls": 15,
+    "functions": 2,
+    "notes": [],
+    "purpose": "比较直接拼接不可信文本与加入防护后的行为。",
+    "blanks": []
+  },
+  {
+    "name": "017.py",
+    "title": "对话状态机",
+    "course": "1-17 · 全课程第 17 节",
+    "key": "1-17",
+    "kind": "py",
+    "hash": "ca390fd9c1da",
+    "calls": 20,
+    "functions": 1,
+    "notes": [],
+    "purpose": "根据当前状态收集信息，并在条件满足后转到下一步。",
+    "blanks": []
+  },
+  {
+    "name": "018.py",
+    "title": "异步工具并行",
+    "course": "1-18 · 全课程第 18 节",
+    "key": "1-18",
+    "kind": "py",
+    "hash": "4239f533287f",
+    "calls": 19,
+    "functions": 3,
+    "notes": [],
+    "purpose": "对比逐个等待与同时等待多个天气任务。",
+    "blanks": []
+  },
+  {
+    "name": "019.py",
+    "title": "单 Agent 评测",
+    "course": "1-19 · 全课程第 19 节",
+    "key": "1-19",
+    "kind": "py",
+    "hash": "3bd9ac091789",
+    "calls": 17,
+    "functions": 2,
+    "notes": [],
+    "purpose": "用固定问题集运行 Agent，再判定答案是否满足期望。",
+    "blanks": []
+  },
+  {
+    "name": "020.py",
+    "title": "调度者与执行者",
+    "course": "2-1 · 全课程第 21 节",
+    "key": "2-1",
+    "kind": "py",
+    "hash": "3f0c1ff7758b",
+    "calls": 25,
+    "functions": 4,
+    "notes": [],
+    "purpose": "调度者拆任务，执行者分头处理，最后汇总。",
+    "blanks": []
+  },
+  {
+    "name": "020_zhangdi.py",
+    "title": "调度者与执行者",
+    "course": "2-1 · 全课程第 21 节",
+    "key": "2-1",
+    "kind": "py",
+    "hash": "5cdcc46dfa9f",
+    "calls": 23,
+    "functions": 4,
+    "notes": [
+      "把调度模式用于多维度的岗位/公司比较，使用 AsyncOpenAI 和异步 worker。维度优先级属于这个应用的输入约束，模型分析不等于已核实的现实信息。"
+    ],
+    "purpose": "调度者拆任务，执行者分头处理，最后汇总。",
+    "blanks": []
+  },
+  {
+    "name": "021.py",
+    "title": "多阶段流水线",
+    "course": "2-2 · 全课程第 22 节",
+    "key": "2-2",
+    "kind": "py",
+    "hash": "391e16c07f64",
+    "calls": 16,
+    "functions": 4,
+    "notes": [],
+    "purpose": "研究结果交给写作，写作结果再交给审阅。",
+    "blanks": []
+  },
+  {
+    "name": "022.py",
+    "title": "协作讨论",
+    "course": "2-3 · 全课程第 23 节",
+    "key": "2-3",
+    "kind": "py",
+    "hash": "f17a507bf516",
+    "calls": 20,
+    "functions": 4,
+    "notes": [],
+    "purpose": "多个角色轮流交换意见，满足共识条件或轮数上限后停止。",
+    "blanks": []
+  },
+  {
+    "name": "023.py",
+    "title": "竞争与裁判",
+    "course": "2-4 · 全课程第 24 节",
+    "key": "2-4",
+    "kind": "py",
+    "hash": "90fa735e0c59",
+    "calls": 15,
+    "functions": 3,
+    "notes": [],
+    "purpose": "多个候选独立作答，裁判比较并选择。",
+    "blanks": []
+  },
+  {
+    "name": "024.py",
+    "title": "Agent 消息信封",
+    "course": "2-5 · 全课程第 25 节",
+    "key": "2-5",
+    "kind": "py",
+    "hash": "6c5afa197265",
+    "calls": 18,
+    "functions": 3,
+    "notes": [],
+    "purpose": "给消息附上发送者、接收者、任务标识等字段并检查格式。",
+    "blanks": []
+  },
+  {
+    "name": "025.py",
+    "title": "共享状态",
+    "course": "2-6 · 全课程第 26 节",
+    "key": "2-6",
+    "kind": "py",
+    "hash": "83a2da7fc9bd",
+    "calls": 13,
+    "functions": 3,
+    "notes": [],
+    "purpose": "多个 worker 通过共享字典读写中间结果。",
+    "blanks": []
+  },
+  {
+    "name": "026.py",
+    "title": "失败降级",
+    "course": "2-7 · 全课程第 27 节",
+    "key": "2-7",
+    "kind": "py",
+    "hash": "b17df68a75dc",
+    "calls": 13,
+    "functions": 2,
+    "notes": [],
+    "purpose": "优先执行主方案，失败后尝试备用方案。",
+    "blanks": []
+  },
+  {
+    "name": "027.py",
+    "title": "并发数量控制",
+    "course": "2-8 · 全课程第 28 节",
+    "key": "2-8",
+    "kind": "py",
+    "hash": "8828716f909a",
+    "calls": 13,
+    "functions": 2,
+    "notes": [],
+    "purpose": "用信号量限制同时执行的 worker 数量。",
+    "blanks": []
+  },
+  {
+    "name": "028.py",
+    "title": "多 Agent 综合流程",
+    "course": "2-10 · 全课程第 30 节",
+    "key": "2-10",
+    "kind": "py",
+    "hash": "a6033e6f1cf6",
+    "calls": 17,
+    "functions": 3,
+    "notes": [],
+    "purpose": "组合并发 worker、失败处理和结果汇总。",
+    "blanks": []
+  },
+  {
+    "name": "029.go",
+    "title": "任务分解与路由",
+    "course": "2-11 · 全课程第 31 节",
+    "key": "2-11",
+    "kind": "go",
+    "hash": "a98f16970f8e",
+    "calls": 17,
+    "functions": 4,
+    "notes": [],
+    "purpose": "把文本拆成子任务，按关键词选择匹配的 Agent 执行。",
+    "blanks": []
+  },
+  {
+    "name": "029.py",
+    "title": "任务分解与路由",
+    "course": "2-11 · 全课程第 31 节",
+    "key": "2-11",
+    "kind": "py",
+    "hash": "121e86eae86d",
+    "calls": 16,
+    "functions": 4,
+    "notes": [
+      "decompose 返回 None，main 随后对它调用 len，会失败；route 也返回 None。execute 的 results 未初始化，且把 append 的返回值赋回列表。L53 的工具执行和追加结果还位于 for 循环外，需要放回循环内才能逐项委派。当前还不能完成路由演示。",
+      "检测到 None 赋值或 pass 的位置：33, 42。这些也可能是正常初始化，需结合下方函数职责与源码判断；不能仅凭没有下划线认定完成。"
+    ],
+    "purpose": "把文本拆成子任务，按关键词选择匹配的 Agent 执行。",
+    "blanks": []
+  },
+  {
+    "name": "030.go",
+    "title": "事件总线",
+    "course": "2-12 · 全课程第 32 节",
+    "key": "2-12",
+    "kind": "go",
+    "hash": "581c34e89c76",
+    "calls": 23,
+    "functions": 7,
+    "notes": [],
+    "purpose": "订阅者按主题注册回调，发布时找到该主题的订阅者并投递。",
+    "blanks": []
+  },
+  {
+    "name": "030.py",
+    "title": "事件总线",
+    "course": "2-12 · 全课程第 32 节",
+    "key": "2-12",
+    "kind": "py",
+    "hash": "2241fbb8f720",
+    "calls": 17,
+    "functions": 7,
+    "notes": [
+      "subscribe 和 publish 只有 result = None，main 的订阅位置也未实现。因此当前发布消息不会触发三个 agent 回调；图中不会虚构这条调用边。",
+      "检测到 None 赋值或 pass 的位置：27, 33, 53。这些也可能是正常初始化，需结合下方函数职责与源码判断；不能仅凭没有下划线认定完成。"
+    ],
+    "purpose": "订阅者按主题注册回调，发布时找到该主题的订阅者并投递。",
+    "blanks": []
+  },
+  {
+    "name": "031.go",
+    "title": "黑板协作",
+    "course": "2-13 · 全课程第 33 节",
+    "key": "2-13",
+    "kind": "go",
+    "hash": "95d97c4a67a7",
+    "calls": 18,
+    "functions": 8,
+    "notes": [],
+    "purpose": "所有角色读写同一块黑板，逐步补齐最终建议所需的信息。",
+    "blanks": []
+  },
+  {
+    "name": "031.py",
+    "title": "黑板协作",
+    "course": "2-13 · 全课程第 33 节",
+    "key": "2-13",
+    "kind": "py",
+    "hash": "709633f6bac0",
+    "calls": 21,
+    "functions": 8,
+    "notes": [
+      "Blackboard.write/read 以及 advisor_agent 的关键逻辑未实现。main 用列表中的 agent 变量间接调用四个角色，但黑板不会被正确填充。",
+      "检测到 None 赋值或 pass 的位置：27, 33, 57。这些也可能是正常初始化，需结合下方函数职责与源码判断；不能仅凭没有下划线认定完成。"
+    ],
+    "purpose": "所有角色读写同一块黑板，逐步补齐最终建议所需的信息。",
+    "blanks": []
+  },
+  {
+    "name": "032.go",
+    "title": "死锁与重复循环检测",
+    "course": "2-14 · 全课程第 34 节",
+    "key": "2-14",
+    "kind": "go",
+    "hash": "e7fdb9b4c6cb",
+    "calls": 18,
+    "functions": 3,
+    "notes": [],
+    "purpose": "在等待关系中找环，并检测状态重复或步数过多。",
+    "blanks": []
+  },
+  {
+    "name": "032.py",
+    "title": "死锁与重复循环检测",
+    "course": "2-14 · 全课程第 34 节",
+    "key": "2-14",
+    "kind": "py",
+    "hash": "40d8b4f57196",
+    "calls": 22,
+    "functions": 4,
+    "notes": [
+      "DFS 缺少遇到灰色节点时报告环的分支；detect_loop 的重复状态和步数检查未实现。当前代码会漏报示例中的异常。",
+      "检测到 None 赋值或 pass 的位置：33, 53, 58。这些也可能是正常初始化，需结合下方函数职责与源码判断；不能仅凭没有下划线认定完成。"
+    ],
+    "purpose": "在等待关系中找环，并检测状态重复或步数过多。",
+    "blanks": []
+  },
+  {
+    "name": "033.go",
+    "title": "跨角色调用链",
+    "course": "2-15 · 全课程第 35 节",
+    "key": "2-15",
+    "kind": "go",
+    "hash": "fbb0e29bd2af",
+    "calls": 21,
+    "functions": 6,
+    "notes": [],
+    "purpose": "给一次请求和每段调用生成标识，再按父子关系还原树。",
+    "blanks": []
+  },
+  {
+    "name": "033.py",
+    "title": "跨角色调用链",
+    "course": "2-15 · 全课程第 35 节",
+    "key": "2-15",
+    "kind": "py",
+    "hash": "e3f9aa2b9e52",
+    "calls": 21,
+    "functions": 7,
+    "notes": [
+      "start_trace、record_span 和 call_agent 返回 None，没有生成标识或追加 span；render_tree 能遍历树，但目前没有有效记录供它展示。",
+      "检测到 None 赋值或 pass 的位置：29, 36, 45。这些也可能是正常初始化，需结合下方函数职责与源码判断；不能仅凭没有下划线认定完成。"
+    ],
+    "purpose": "给一次请求和每段调用生成标识，再按父子关系还原树。",
+    "blanks": []
+  },
+  {
+    "name": "034.go",
+    "title": "预算分摊",
+    "course": "2-16 · 全课程第 36 节",
+    "key": "2-16",
+    "kind": "go",
+    "hash": "16893a616bc6",
+    "calls": 25,
+    "functions": 5,
+    "notes": [],
+    "purpose": "按每个 Agent 的输入输出用量累计费用，并与预算比较。",
+    "blanks": []
+  },
+  {
+    "name": "034.py",
+    "title": "预算分摊",
+    "course": "2-16 · 全课程第 36 节",
+    "key": "2-16",
+    "kind": "py",
+    "hash": "f079a5e1ccfd",
+    "calls": 19,
+    "functions": 4,
+    "notes": [
+      "cost_of 固定返回 0，allocate 只有 pass，main 没有实现预算中止判断。因此当前输出零费用，不能说明预算控制已完成。",
+      "检测到 None 赋值或 pass 的位置：47。这些也可能是正常初始化，需结合下方函数职责与源码判断；不能仅凭没有下划线认定完成。"
+    ],
+    "purpose": "按每个 Agent 的输入输出用量累计费用，并与预算比较。",
+    "blanks": []
+  },
+  {
+    "name": "035.go",
+    "title": "人工确认节点",
+    "course": "2-17 · 全课程第 37 节",
+    "key": "2-17",
+    "kind": "go",
+    "hash": "3cf3d3baea90",
+    "calls": 15,
+    "functions": 4,
+    "notes": [
+      "回复来自 humanReplies 预设队列，队列用完默认批准；并非真实人工输入。main 在审批判断前已经调用 runStep，拒绝只能阻止后续步骤。runStep 目前只返回文字；接真实动作前必须调整顺序。"
+    ],
+    "purpose": "识别关键步骤，在真正执行前取得人工批准，拒绝时停止或跳过。",
+    "blanks": []
+  },
+  {
+    "name": "035.py",
+    "title": "人工确认节点",
+    "course": "2-17 · 全课程第 37 节",
+    "key": "2-17",
+    "kind": "py",
+    "hash": "eee091a9a2bd",
+    "calls": 12,
+    "functions": 4,
+    "notes": [
+      "is_critical 固定返回 False，ask_human 固定批准；main 先调用 run_step 再检查审批，而且没有拒绝后的中止分支。这里只打印模拟动作，但真正实现时必须先审批再执行。"
+    ],
+    "purpose": "识别关键步骤，在真正执行前取得人工批准，拒绝时停止或跳过。",
+    "blanks": []
+  },
+  {
+    "name": "036.go",
+    "title": "多 Agent 协作评测",
+    "course": "2-18 · 全课程第 38 节",
+    "key": "2-18",
+    "kind": "go",
+    "hash": "db279ccad274",
+    "calls": 21,
+    "functions": 5,
+    "notes": [],
+    "purpose": "计算完成率、协作轮数对应的效率分和产出质量，再加权比较。",
+    "blanks": []
+  },
+  {
+    "name": "036.py",
+    "title": "多 Agent 协作评测",
+    "course": "2-18 · 全课程第 38 节",
+    "key": "2-18",
+    "kind": "py",
+    "hash": "3917d3294711",
+    "calls": 18,
+    "functions": 5,
+    "notes": [
+      "completion_rate、efficiency_score、overall 都固定返回 0；quality_score 只读样例字段。当前总分尚未真正实现。"
+    ],
+    "purpose": "计算完成率、协作轮数对应的效率分和产出质量，再加权比较。",
+    "blanks": []
+  },
+  {
+    "name": "037.go",
+    "title": "工具权限与审计",
+    "course": "2-19 · 全课程第 39 节",
+    "key": "2-19",
+    "kind": "go",
+    "hash": "12b9cf53f44e",
+    "calls": 17,
+    "functions": 4,
+    "notes": [],
+    "purpose": "按 Agent 角色检查工具白名单，再检查额外授权并记录结果。",
+    "blanks": []
+  },
+  {
+    "name": "037.py",
+    "title": "工具权限与审计",
+    "course": "2-19 · 全课程第 39 节",
+    "key": "2-19",
+    "kind": "py",
+    "hash": "0c5748b6144f",
+    "calls": 12,
+    "functions": 3,
+    "notes": [
+      "has_permission 固定返回 False，execute 被拒绝时返回空串，没有写审计日志。当前所有请求都会被拒绝，但并没有完成角色白名单与审计功能。"
+    ],
+    "purpose": "按 Agent 角色检查工具白名单，再检查额外授权并记录结果。",
+    "blanks": []
+  },
+  {
+    "name": "038.go",
+    "title": "框架工具调用 Agent",
+    "course": "3-1 · 全课程第 41 节",
+    "key": "3-1",
+    "kind": "go",
+    "hash": "eed6e8153bd1",
+    "calls": 34,
+    "functions": 8,
+    "notes": [
+      "用自定义工具表和 agentLoop 演示工具分发，没有调用 LangChain，也没有真实大模型请求。表达式由本文件的递归下降解析器处理。"
+    ],
+    "purpose": "把天气与计算工具交给 Agent，模型选择工具，框架或循环执行并回传结果。",
+    "blanks": []
+  },
+  {
+    "name": "038.py",
+    "title": "框架工具调用 Agent",
+    "course": "3-1 · 全课程第 41 节",
+    "key": "3-1",
+    "kind": "py",
+    "hash": "09b3aa1c0b47",
+    "calls": 17,
+    "functions": 2,
+    "notes": [
+      "此文件使用 create_tool_calling_agent / AgentExecutor 的接口写法。天气工具是本地示例；框架组装处仍有填空。按源码理解接口职责，实际安装版本是否支持需另行核对。",
+      "仍有下划线占位表达式，源文件行号：82, 83, 84。相应路径在补完前不能正常执行。",
+      "源码存在 eval 调用。请先看表达式限制条件；调用图只能说明它被使用，不能证明输入已被安全限制。"
+    ],
+    "purpose": "把天气与计算工具交给 Agent，模型选择工具，框架或循环执行并回传结果。",
+    "blanks": [
+      82,
+      83,
+      84
+    ]
+  },
+  {
+    "name": "038_real.go",
+    "title": "框架工具调用 Agent",
+    "course": "3-1 · 全课程第 41 节",
+    "key": "3-1",
+    "kind": "go",
+    "hash": "efc313327b6c",
+    "calls": 77,
+    "functions": 10,
+    "notes": [
+      "直接用 HTTP 与模型通信，再由 agentRun 分发工具；没有 LangChain 依赖。getWeather 连接真实天气服务，calcRun 使用本地算术解析器。"
+    ],
+    "purpose": "把天气与计算工具交给 Agent，模型选择工具，框架或循环执行并回传结果。",
+    "blanks": []
+  },
+  {
+    "name": "038_real.py",
+    "title": "框架工具调用 Agent",
+    "course": "3-1 · 全课程第 41 节",
+    "key": "3-1",
+    "kind": "py",
+    "hash": "2ab03924af0b",
+    "calls": 38,
+    "functions": 3,
+    "notes": [
+      "使用 ChatOpenAI 和 create_agent 连接真实模型；get_weather 先查城市坐标，匹配成功后再查天气，共两次 Open-Meteo HTTP 请求；无匹配城市时提前返回。calc 用 AST 白名单计算，不执行任意 Python 语句。框架根据模型回复动态调用注册工具，静态图中的注册边不代表每次都会调用。"
+    ],
+    "purpose": "把天气与计算工具交给 Agent，模型选择工具，框架或循环执行并回传结果。",
+    "blanks": []
+  },
+  {
+    "name": "039.go",
+    "title": "图式工作流",
+    "course": "3-2 · 全课程第 42 节",
+    "key": "3-2",
+    "kind": "go",
+    "hash": "94aad0a4e335",
+    "calls": 19,
+    "functions": 7,
+    "notes": [
+      "这是自定义 graph 类型，不是 LangGraph SDK。计划与 worker 结果采用演示逻辑，按边顺序运行。"
+    ],
+    "purpose": "用节点表示计划、执行与汇总，用边规定下一步。",
+    "blanks": []
+  },
+  {
+    "name": "039.py",
+    "title": "图式工作流",
+    "course": "3-2 · 全课程第 42 节",
+    "key": "3-2",
+    "kind": "py",
+    "hash": "54eb034f10b4",
+    "calls": 26,
+    "functions": 4,
+    "notes": [
+      "使用真实 LangGraph/ChatOpenAI 接口，但图组装仍有填空。workers_node 内按列表逐项调用模型，画成多个节点不会自动变成并行。",
+      "仍有下划线占位表达式，源文件行号：88, 94, 95, 102。相应路径在补完前不能正常执行。"
+    ],
+    "purpose": "用节点表示计划、执行与汇总，用边规定下一步。",
+    "blanks": [
+      88,
+      94,
+      95,
+      102
+    ]
+  },
+  {
+    "name": "040.go",
+    "title": "MCP 工具通信入门",
+    "course": "3-3 · 全课程第 43 节",
+    "key": "3-3",
+    "kind": "go",
+    "hash": "f1b8cd4e8e0d",
+    "calls": 66,
+    "functions": 11,
+    "notes": [
+      "客户端启动当前程序的服务端模式，通过管道传 JSON-RPC；不是在同一函数里假装网络调用。它仍然是最小协议示例。"
+    ],
+    "purpose": "客户端启动子进程，用标准输入输出传 JSON-RPC 请求，服务端列出并执行工具。",
+    "blanks": []
+  },
+  {
+    "name": "040.py",
+    "title": "MCP 工具通信入门",
+    "course": "3-3 · 全课程第 43 节",
+    "key": "3-3",
+    "kind": "py",
+    "hash": "25d618851cf0",
+    "calls": 33,
+    "functions": 5,
+    "notes": [
+      "同一个脚本分客户端与 --server 两种入口，通过子进程标准输入输出通信。请求分发仍有填空；协议教学代码不能直接认定为完整 MCP 服务。",
+      "仍有下划线占位表达式，源文件行号：87, 97, 99, 158。相应路径在补完前不能正常执行。",
+      "源码存在 eval 调用。请先看表达式限制条件；调用图只能说明它被使用，不能证明输入已被安全限制。"
+    ],
+    "purpose": "客户端启动子进程，用标准输入输出传 JSON-RPC 请求，服务端列出并执行工具。",
+    "blanks": [
+      87,
+      97,
+      99,
+      158
+    ]
+  },
+  {
+    "name": "041.go",
+    "title": "评测运行器",
+    "course": "3-4 · 全课程第 44 节",
+    "key": "3-4",
+    "kind": "go",
+    "hash": "a579072e9aa9",
+    "calls": 17,
+    "functions": 3,
+    "notes": [
+      "agent 查本地模拟知识表，judge 做关键词判断；没有真实 LLM 裁判请求。适合研究评测流程，不能据此评价大模型能力。"
+    ],
+    "purpose": "遍历固定题集，调用被测 Agent 和裁判，统计正确率等结果。",
+    "blanks": []
+  },
+  {
+    "name": "041.py",
+    "title": "评测运行器",
+    "course": "3-4 · 全课程第 44 节",
+    "key": "3-4",
+    "kind": "py",
+    "hash": "dff9562f69c8",
+    "calls": 16,
+    "functions": 2,
+    "notes": [
+      "仍有下划线占位表达式，源文件行号：62, 76, 99。相应路径在补完前不能正常执行。"
+    ],
+    "purpose": "遍历固定题集，调用被测 Agent 和裁判，统计正确率等结果。",
+    "blanks": [
+      62,
+      76,
+      99
+    ]
+  },
+  {
+    "name": "042.go",
+    "title": "切块、混合检索与重排",
+    "course": "3-5 · 全课程第 45 节",
+    "key": "3-5",
+    "kind": "go",
+    "hash": "d3209987561e",
+    "calls": 62,
+    "functions": 10,
+    "notes": [
+      "向量来自字符二元组，稀疏分数是简化公式，排序是本地计算；没有下载 embedding 模型，也没有调用真实重排模型。"
+    ],
+    "purpose": "把文档切块，用字符向量与词项分数召回，再对候选排序。",
+    "blanks": []
+  },
+  {
+    "name": "042.py",
+    "title": "切块、混合检索与重排",
+    "course": "3-5 · 全课程第 45 节",
+    "key": "3-5",
+    "kind": "py",
+    "hash": "a5f27d686383",
+    "calls": 63,
+    "functions": 9,
+    "notes": [
+      "vec 使用字符二元组计数，不能理解深层语义。rerank_with_llm 会真实调用模型，rerank_local 是本地降级分支；仍有切块、打分等填空。",
+      "仍有下划线占位表达式，源文件行号：60, 90, 124, 178。相应路径在补完前不能正常执行。"
+    ],
+    "purpose": "把文档切块，用字符向量与词项分数召回，再对候选排序。",
+    "blanks": [
+      60,
+      90,
+      124,
+      178
+    ]
+  },
+  {
+    "name": "043.go",
+    "title": "检索质量指标",
+    "course": "3-8 · 全课程第 48 节",
+    "key": "3-8",
+    "kind": "go",
+    "hash": "6a336e97fc94",
+    "calls": 35,
+    "functions": 5,
+    "notes": [],
+    "purpose": "计算 Recall@k、NDCG@k 和 MRR，对比命中数量和排序位置。",
+    "blanks": []
+  },
+  {
+    "name": "043.py",
+    "title": "检索质量指标",
+    "course": "3-8 · 全课程第 48 节",
+    "key": "3-8",
+    "kind": "py",
+    "hash": "2b66e819f3f0",
+    "calls": 26,
+    "functions": 4,
+    "notes": [
+      "仍有下划线占位表达式，源文件行号：39, 54, 66。相应路径在补完前不能正常执行。"
+    ],
+    "purpose": "计算 Recall@k、NDCG@k 和 MRR，对比命中数量和排序位置。",
+    "blanks": [
+      39,
+      54,
+      66
+    ]
+  },
+  {
+    "name": "044.go",
+    "title": "持久化与暂停恢复",
+    "course": "3-9 · 全课程第 49 节",
+    "key": "3-9",
+    "kind": "go",
+    "hash": "2f5e5ec39dd2",
+    "calls": 21,
+    "functions": 6,
+    "notes": [
+      "自定义 Graph.load/save 用 JSON 文件保存状态，Graph.run 根据 resume 参数模拟暂停与继续。不是 LangGraph SDK，也不是 SQLite checkpoint。main 启动时删除旧 checkpoint，因此当前只演示同一进程内两次 run 的保存与恢复；跨进程恢复需调整入口。文件相对于启动工作目录。"
+    ],
+    "purpose": "生成草稿，保存状态，在人审处暂停，再带决定恢复执行。",
+    "blanks": []
+  },
+  {
+    "name": "044.py",
+    "title": "持久化与暂停恢复",
+    "course": "3-9 · 全课程第 49 节",
+    "key": "3-9",
+    "kind": "py",
+    "hash": "48f5947fd2ed",
+    "calls": 18,
+    "functions": 2,
+    "notes": [
+      "generate_node 返回固定草稿，并不调用大模型。使用 SQLite checkpoint 的框架示例，人审和保存器相关位置仍有填空；与 Go 的 checkpoints.json 不共用存储格式。",
+      "仍有下划线占位表达式，源文件行号：45, 60, 78。相应路径在补完前不能正常执行。"
+    ],
+    "purpose": "生成草稿，保存状态，在人审处暂停，再带决定恢复执行。",
+    "blanks": [
+      45,
+      60,
+      78
+    ]
+  },
+  {
+    "name": "README.md",
+    "title": "课程文件导航",
+    "course": "总目录",
+    "key": "总目录",
+    "kind": "md",
+    "hash": "c70f1d3ab71c",
+    "calls": 0,
+    "functions": 0,
+    "notes": [
+      "该文件是说明材料，没有可执行程序入口。"
+    ],
+    "purpose": "根据章节找到练习、完整示例和答案的入口。",
+    "blanks": []
+  },
+  {
+    "name": "a2a.py",
+    "title": "Agent 消息信封",
+    "course": "2-5 · 全课程第 25 节",
+    "key": "2-5",
+    "kind": "py",
+    "hash": "7e603740f14f",
+    "calls": 19,
+    "functions": 3,
+    "notes": [],
+    "purpose": "给消息附上发送者、接收者、任务标识等字段并检查格式。",
+    "blanks": []
+  },
+  {
+    "name": "agent_eval.py",
+    "title": "单 Agent 评测",
+    "course": "1-19 · 全课程第 19 节",
+    "key": "1-19",
+    "kind": "py",
+    "hash": "5958ab6a0ec7",
+    "calls": 16,
+    "functions": 2,
+    "notes": [],
+    "purpose": "用固定问题集运行 Agent，再判定答案是否满足期望。",
+    "blanks": []
+  },
+  {
+    "name": "answers-029-033.md",
+    "title": "029—033 参考答案",
+    "course": "2-11 至 2-15",
+    "key": "2-11 至 2-15",
+    "kind": "md",
+    "hash": "8176066f0f71",
+    "calls": 0,
+    "functions": 0,
+    "notes": [
+      "该文件是说明材料，没有可执行程序入口。",
+      "参考答案与当前代码状态分别维护；先检查实际函数体，尤其注意 result=None、固定返回值和审批先后顺序。"
+    ],
+    "purpose": "核对任务路由、事件总线、黑板、循环检测和追踪的实现。",
+    "blanks": []
+  },
+  {
+    "name": "answers-033-044.md",
+    "title": "033—044 Python/Go 对照",
+    "course": "2-15 至 3-9",
+    "key": "2-15 至 3-9",
+    "kind": "md",
+    "hash": "916e43f65eed",
+    "calls": 0,
+    "functions": 0,
+    "notes": [
+      "该文件是说明材料，没有可执行程序入口。",
+      "参考答案与当前代码状态分别维护；先检查实际函数体，尤其注意 result=None、固定返回值和审批先后顺序。"
+    ],
+    "purpose": "按文件比较 Python 与 Go 的关键实现。",
+    "blanks": []
+  },
+  {
+    "name": "answers-034-037.md",
+    "title": "034—037 参考答案",
+    "course": "2-16 至 2-19",
+    "key": "2-16 至 2-19",
+    "kind": "md",
+    "hash": "c745e0d213e3",
+    "calls": 0,
+    "functions": 0,
+    "notes": [
+      "该文件是说明材料，没有可执行程序入口。",
+      "参考答案与当前代码状态分别维护；先检查实际函数体，尤其注意 result=None、固定返回值和审批先后顺序。"
+    ],
+    "purpose": "核对预算、审批、评测和权限的关键逻辑。",
+    "blanks": []
+  },
+  {
+    "name": "answers-038-042.md",
+    "title": "038—042 参考答案",
+    "course": "3-1 至 3-5",
+    "key": "3-1 至 3-5",
+    "kind": "md",
+    "hash": "9239f380998d",
+    "calls": 0,
+    "functions": 0,
+    "notes": [
+      "该文件是说明材料，没有可执行程序入口。",
+      "参考答案与当前代码状态分别维护；先检查实际函数体，尤其注意 result=None、固定返回值和审批先后顺序。"
+    ],
+    "purpose": "核对框架、图流程、工具协议、评测和检索的示例。",
+    "blanks": []
+  },
+  {
+    "name": "answers-043-044.md",
+    "title": "043—044 参考答案",
+    "course": "3-8 至 3-9",
+    "key": "3-8 至 3-9",
+    "kind": "md",
+    "hash": "15c736f28b8a",
+    "calls": 0,
+    "functions": 0,
+    "notes": [
+      "该文件是说明材料，没有可执行程序入口。",
+      "参考答案与当前代码状态分别维护；先检查实际函数体，尤其注意 result=None、固定返回值和审批先后顺序。"
+    ],
+    "purpose": "核对检索指标与暂停恢复的实现。",
+    "blanks": []
+  },
+  {
+    "name": "answers.md",
+    "title": "练习答案与挑战提示",
+    "course": "多节",
+    "key": "多节",
+    "kind": "md",
+    "hash": "72c3f9f261b4",
+    "calls": 0,
+    "functions": 0,
+    "notes": [
+      "该文件是说明材料，没有可执行程序入口。",
+      "参考答案与当前代码状态分别维护；先检查实际函数体，尤其注意 result=None、固定返回值和审批先后顺序。"
+    ],
+    "purpose": "按关卡核对关键填空并回到原文件解释原因。",
+    "blanks": []
+  },
+  {
+    "name": "arch_compare.md",
+    "title": "多 Agent 架构比较",
+    "course": "2-9 · 全课程第 29 节",
+    "key": "2-9",
+    "kind": "md",
+    "hash": "0c2894cc084e",
+    "calls": 0,
+    "functions": 0,
+    "notes": [
+      "该文件是说明材料，没有可执行程序入口。"
+    ],
+    "purpose": "比较调度、流水线、协作与竞争模式。",
+    "blanks": []
+  },
+  {
+    "name": "async_tools.py",
+    "title": "异步工具并行",
+    "course": "1-18 · 全课程第 18 节",
+    "key": "1-18",
+    "kind": "py",
+    "hash": "6b579d37a0b5",
+    "calls": 19,
+    "functions": 3,
+    "notes": [],
+    "purpose": "对比逐个等待与同时等待多个天气任务。",
+    "blanks": []
+  },
+  {
+    "name": "caching.py",
+    "title": "请求缓存",
+    "course": "1-15 · 全课程第 15 节",
+    "key": "1-15",
+    "kind": "py",
+    "hash": "b15e70098bb2",
+    "calls": 17,
+    "functions": 1,
+    "notes": [],
+    "purpose": "相同请求再次出现时优先返回已保存的响应。",
+    "blanks": []
+  },
+  {
+    "name": "checkpoints.json",
+    "title": "暂停恢复的状态快照",
+    "course": "3-9 · 全课程第 49 节",
+    "key": "3-9",
+    "kind": "json",
+    "hash": "656da72ba83a",
+    "calls": 0,
+    "functions": 0,
+    "notes": [
+      "当前 JSON 字段：content, approved。044.py 使用 SQLite 保存器，不读取这个 JSON 格式。",
+      "044.go 的 main 在 L80 删除旧 checkpoint；原样重启会清掉之前的状态。当前只演示同一进程内两次 run，跨进程恢复需调整入口。"
+    ],
+    "purpose": "保存 content 和 approved 字段，供 Go 的图流程保存/恢复草稿与审批状态。",
+    "blanks": []
+  },
+  {
+    "name": "collab.py",
+    "title": "协作讨论",
+    "course": "2-3 · 全课程第 23 节",
+    "key": "2-3",
+    "kind": "py",
+    "hash": "32ae0f1753c6",
+    "calls": 19,
+    "functions": 4,
+    "notes": [],
+    "purpose": "多个角色轮流交换意见，满足共识条件或轮数上限后停止。",
+    "blanks": []
+  },
+  {
+    "name": "competitive.py",
+    "title": "竞争与裁判",
+    "course": "2-4 · 全课程第 24 节",
+    "key": "2-4",
+    "kind": "py",
+    "hash": "4eea8ad5913e",
+    "calls": 15,
+    "functions": 3,
+    "notes": [],
+    "purpose": "多个候选独立作答，裁判比较并选择。",
+    "blanks": []
+  },
+  {
+    "name": "concurrency.py",
+    "title": "并发数量控制",
+    "course": "2-8 · 全课程第 28 节",
+    "key": "2-8",
+    "kind": "py",
+    "hash": "650c04780882",
+    "calls": 13,
+    "functions": 2,
+    "notes": [],
+    "purpose": "用信号量限制同时执行的 worker 数量。",
+    "blanks": []
+  },
+  {
+    "name": "ctx_window.py",
+    "title": "上下文窗口管理",
+    "course": "1-11 · 全课程第 11 节",
+    "key": "1-11",
+    "kind": "py",
+    "hash": "17bd4a114f88",
+    "calls": 25,
+    "functions": 3,
+    "notes": [],
+    "purpose": "估算历史长度，超出阈值时压缩历史并保留近期消息。",
+    "blanks": []
+  },
+  {
+    "name": "dialogue_fsm.py",
+    "title": "对话状态机",
+    "course": "1-17 · 全课程第 17 节",
+    "key": "1-17",
+    "kind": "py",
+    "hash": "14e59e1fc1cb",
+    "calls": 19,
+    "functions": 1,
+    "notes": [],
+    "purpose": "根据当前状态收集信息，并在条件满足后转到下一步。",
+    "blanks": []
+  },
+  {
+    "name": "embed_compare.md",
+    "title": "Embedding 比较",
+    "course": "3-7 · 全课程第 47 节",
+    "key": "3-7",
+    "kind": "md",
+    "hash": "1e045dbed1ed",
+    "calls": 0,
+    "functions": 0,
+    "notes": [
+      "该文件是说明材料，没有可执行程序入口。",
+      "文中的具体版本、性能和选型结论未在本次重新验证；本页只整理它的阅读用途。"
+    ],
+    "purpose": "按语言、维度和部署方式思考向量模型的选择。",
+    "blanks": []
+  },
+  {
+    "name": "fault_tolerance.py",
+    "title": "失败降级",
+    "course": "2-7 · 全课程第 27 节",
+    "key": "2-7",
+    "kind": "py",
+    "hash": "ebab5e445036",
+    "calls": 13,
+    "functions": 2,
+    "notes": [],
+    "purpose": "优先执行主方案，失败后尝试备用方案。",
+    "blanks": []
+  },
+  {
+    "name": "full_agent.py",
+    "title": "完整单 Agent",
+    "course": "1-10 · 全课程第 10 节",
+    "key": "1-10",
+    "kind": "py",
+    "hash": "b14806a00b9d",
+    "calls": 49,
+    "functions": 5,
+    "notes": [
+      "模型请求与本地工具是不同边界：这些文件中的天气工具使用示例逻辑，不能将示例天气当成实时查询结果。",
+      "源码存在 eval 调用。请先看表达式限制条件；调用图只能说明它被使用，不能证明输入已被安全限制。"
+    ],
+    "purpose": "把工具分发、错误处理和记录接入同一个模型循环。",
+    "blanks": []
+  },
+  {
+    "name": "langchain_src.md",
+    "title": "LangChain 源码阅读路线",
+    "course": "3-10 · 全课程第 50 节",
+    "key": "3-10",
+    "kind": "md",
+    "hash": "c45e1c0209d4",
+    "calls": 0,
+    "functions": 0,
+    "notes": [
+      "该文件是说明材料，没有可执行程序入口。",
+      "文中的具体版本、性能和选型结论未在本次重新验证；本页只整理它的阅读用途。"
+    ],
+    "purpose": "沿 Runnable 与组合执行接口追踪调用链。",
+    "blanks": []
+  },
+  {
+    "name": "multi_agent_project.py",
+    "title": "多 Agent 综合流程",
+    "course": "2-10 · 全课程第 30 节",
+    "key": "2-10",
+    "kind": "py",
+    "hash": "cba9c5541e97",
+    "calls": 17,
+    "functions": 3,
+    "notes": [],
+    "purpose": "组合并发 worker、失败处理和结果汇总。",
+    "blanks": []
+  },
+  {
+    "name": "orchestrator.py",
+    "title": "调度者与执行者",
+    "course": "2-1 · 全课程第 21 节",
+    "key": "2-1",
+    "kind": "py",
+    "hash": "c4abf11a6267",
+    "calls": 24,
+    "functions": 4,
+    "notes": [],
+    "purpose": "调度者拆任务，执行者分头处理，最后汇总。",
+    "blanks": []
+  },
+  {
+    "name": "pipeline.py",
+    "title": "多阶段流水线",
+    "course": "2-2 · 全课程第 22 节",
+    "key": "2-2",
+    "kind": "py",
+    "hash": "554d7a8194c7",
+    "calls": 15,
+    "functions": 4,
+    "notes": [],
+    "purpose": "研究结果交给写作，写作结果再交给审阅。",
+    "blanks": []
+  },
+  {
+    "name": "plan_agent.py",
+    "title": "先计划再执行",
+    "course": "1-6 · 全课程第 6 节",
+    "key": "1-6",
+    "kind": "py",
+    "hash": "b96463f79944",
+    "calls": 31,
+    "functions": 3,
+    "notes": [
+      "模型请求与本地工具是不同边界：这些文件中的天气工具使用示例逻辑，不能将示例天气当成实时查询结果。"
+    ],
+    "purpose": "先生成步骤，再让执行器按步骤调用工具并汇总。",
+    "blanks": []
+  },
+  {
+    "name": "prompt_eng.py",
+    "title": "提示词策略对比",
+    "course": "1-13 · 全课程第 13 节",
+    "key": "1-13",
+    "kind": "py",
+    "hash": "1f6878a691b0",
+    "calls": 24,
+    "functions": 5,
+    "notes": [],
+    "purpose": "对同类问题尝试直接提问、示例、分步提示和角色提示。",
+    "blanks": []
+  },
+  {
+    "name": "prompt_sec.py",
+    "title": "提示注入实验",
+    "course": "1-16 · 全课程第 16 节",
+    "key": "1-16",
+    "kind": "py",
+    "hash": "2d0ae8445622",
+    "calls": 14,
+    "functions": 2,
+    "notes": [],
+    "purpose": "比较直接拼接不可信文本与加入防护后的行为。",
+    "blanks": []
+  },
+  {
+    "name": "reflect_agent.py",
+    "title": "反思与修订",
+    "course": "1-7 · 全课程第 7 节",
+    "key": "1-7",
+    "kind": "py",
+    "hash": "4f77c2e49d89",
+    "calls": 21,
+    "functions": 2,
+    "notes": [],
+    "purpose": "先回答，再让模型检查答案，最后根据检查意见修订。",
+    "blanks": []
+  },
+  {
+    "name": "review_phase1.md",
+    "title": "Phase 1 复盘",
+    "course": "1-20 · 全课程第 20 节",
+    "key": "1-20",
+    "kind": "md",
+    "hash": "aba7295873d9",
+    "calls": 0,
+    "functions": 0,
+    "notes": [
+      "该文件是说明材料，没有可执行程序入口。"
+    ],
+    "purpose": "把单 Agent 的循环、工具、记忆和评测串起来。",
+    "blanks": []
+  },
+  {
+    "name": "review_phase2.md",
+    "title": "Phase 2 复盘与架构表达",
+    "course": "2-20 · 全课程第 40 节",
+    "key": "2-20",
+    "kind": "md",
+    "hash": "9a6cf75edbc5",
+    "calls": 0,
+    "functions": 0,
+    "notes": [
+      "该文件是说明材料，没有可执行程序入口。"
+    ],
+    "purpose": "复盘多 Agent 分工、通信、状态和治理，并练习说明设计取舍。",
+    "blanks": []
+  },
+  {
+    "name": "robust_tools.go",
+    "title": "工具超时与重试",
+    "course": "1-8 · 全课程第 8 节",
+    "key": "1-8",
+    "kind": "go",
+    "hash": "f01f4553555d",
+    "calls": 31,
+    "functions": 3,
+    "notes": [
+      "用 context.WithTimeout 和带 context 的 HTTP 请求访问真实天气接口；缓存 map 由互斥锁保护。超时取消与 Python 线程等待超时机制不同。"
+    ],
+    "purpose": "给天气工具增加失败重试、超时处理和结果缓存。",
+    "blanks": []
+  },
+  {
+    "name": "robust_tools.py",
+    "title": "工具超时与重试",
+    "course": "1-8 · 全课程第 8 节",
+    "key": "1-8",
+    "kind": "py",
+    "hash": "596906ee56a4",
+    "calls": 18,
+    "functions": 2,
+    "notes": [
+      "get_weather 用随机故障/等待模拟服务。Future.result(timeout=...) 只限制等待结果，不会杀掉线程；线程池上下文退出可能继续等待任务。"
+    ],
+    "purpose": "给天气工具增加失败重试、超时处理和结果缓存。",
+    "blanks": []
+  },
+  {
+    "name": "robust_tools_real.py",
+    "title": "工具超时与重试",
+    "course": "1-8 · 全课程第 8 节",
+    "key": "1-8",
+    "kind": "py",
+    "hash": "1a84b0772873",
+    "calls": 17,
+    "functions": 2,
+    "notes": [
+      "通过 requests 访问真实天气服务，HTTP 请求带 timeout；与随机失败的本地 get_weather 模拟版用途不同。"
+    ],
+    "purpose": "给天气工具增加失败重试、超时处理和结果缓存。",
+    "blanks": []
+  },
+  {
+    "name": "shared_state.py",
+    "title": "共享状态",
+    "course": "2-6 · 全课程第 26 节",
+    "key": "2-6",
+    "kind": "py",
+    "hash": "5494fc3bcb89",
+    "calls": 13,
+    "functions": 3,
+    "notes": [],
+    "purpose": "多个 worker 通过共享字典读写中间结果。",
+    "blanks": []
+  },
+  {
+    "name": "stream_agent.py",
+    "title": "流式输出与工具调用",
+    "course": "1-5 · 全课程第 5 节",
+    "key": "1-5",
+    "kind": "py",
+    "hash": "52aa9f73e4bb",
+    "calls": 11,
+    "functions": 2,
+    "notes": [
+      "模型请求与本地工具是不同边界：这些文件中的天气工具使用示例逻辑，不能将示例天气当成实时查询结果。"
+    ],
+    "purpose": "逐段接收模型输出；工具参数收齐后再调用工具，把结果交回模型。",
+    "blanks": []
+  },
+  {
+    "name": "structured_out.py",
+    "title": "结构化结果",
+    "course": "1-14 · 全课程第 14 节",
+    "key": "1-14",
+    "kind": "py",
+    "hash": "037e8fc5e145",
+    "calls": 16,
+    "functions": 1,
+    "notes": [],
+    "purpose": "让模型输出 JSON，解析失败时反馈错误并重试。",
+    "blanks": []
+  },
+  {
+    "name": "token_cost.py",
+    "title": "Token 与费用估算",
+    "course": "1-12 · 全课程第 12 节",
+    "key": "1-12",
+    "kind": "py",
+    "hash": "c9678de73395",
+    "calls": 27,
+    "functions": 3,
+    "notes": [],
+    "purpose": "按输入和输出用量分别计算费用，并与估算比较。",
+    "blanks": []
+  },
+  {
+    "name": "trace_agent.py",
+    "title": "单 Agent 调用记录",
+    "course": "1-9 · 全课程第 9 节",
+    "key": "1-9",
+    "kind": "py",
+    "hash": "1f2d8fabc96b",
+    "calls": 39,
+    "functions": 3,
+    "notes": [
+      "模型请求与本地工具是不同边界：这些文件中的天气工具使用示例逻辑，不能将示例天气当成实时查询结果。"
+    ],
+    "purpose": "把模型和工具执行过程记下来，展示调用与耗时。",
+    "blanks": []
+  },
+  {
+    "name": "vector_db_compare.md",
+    "title": "向量存储比较",
+    "course": "3-6 · 全课程第 46 节",
+    "key": "3-6",
+    "kind": "md",
+    "hash": "c49ef76d2fc8",
+    "calls": 0,
+    "functions": 0,
+    "notes": [
+      "该文件是说明材料，没有可执行程序入口。",
+      "文中的具体版本、性能和选型结论未在本次重新验证；本页只整理它的阅读用途。"
+    ],
+    "purpose": "比较向量索引与数据库的检索、持久化和服务能力。",
+    "blanks": []
+  }
+]

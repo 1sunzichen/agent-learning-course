@@ -1,0 +1,28 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="llm · L91",fillcolor="#e1eee9",fontcolor="#203c33"];
+n1 [label="worker · L100",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="orchestrator_summarize · L113",fillcolor="#e1eee9",fontcolor="#203c33"];
+n3 [label="main · L123",fillcolor="#e1eee9",fontcolor="#203c33"];
+n4 [label="模块顶层 / 条件入口",fillcolor="#243e36",fontcolor="#ffffff"];
+n5 [label="OpenAI",fillcolor="#f2ede4",fontcolor="#203c33"];
+n6 [label="__import__",fillcolor="#f2ede4",fontcolor="#203c33"];
+n7 [label="AsyncOpenAI",fillcolor="#f2ede4",fontcolor="#203c33"];
+n8 [label="client.chat.completions.create",fillcolor="#f2ede4",fontcolor="#203c33"];
+n9 [label="aclient.chat.completions.create",fillcolor="#f2ede4",fontcolor="#203c33"];
+n10 [label="asyncio.gather",fillcolor="#f2ede4",fontcolor="#203c33"];
+n11 [label="asyncio.run",fillcolor="#f2ede4",fontcolor="#203c33"];
+n4 -> n5 [label="L30",style="solid"];
+n4 -> n6 [label="L31, L37",style="solid"];
+n4 -> n7 [label="L36",style="solid"];
+n0 -> n8 [label="L92",style="solid"];
+n1 -> n9 [label="L102",style="solid"];
+n2 -> n0 [label="L116",style="solid"];
+n3 -> n10 [label="L129",style="solid"];
+n3 -> n1 [label="L129",style="solid"];
+n3 -> n2 [label="L136",style="solid"];
+n4 -> n11 [label="L142",style="solid"];
+n4 -> n3 [label="L142",style="solid"];
+}

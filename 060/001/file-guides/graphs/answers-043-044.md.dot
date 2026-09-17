@@ -1,0 +1,28 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="带着当前文件/问题阅读",fillcolor="#243e36",fontcolor="#ffffff"];
+n1 [label="Phase 3 · 043 / 044 填空答案",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="043.py（关卡 3-8 · 检索质量评估）填空答案",fillcolor="#e1eee9",fontcolor="#203c33"];
+n3 [label="填空 1（recall@k：命中率）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n4 [label="填空 2（NDCG@k：归一化折损累计增益）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n5 [label="填空 3（MRR：平均倒数排名）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n6 [label="044.py（关卡 3-9 · LangGraph 进阶）填空答案",fillcolor="#e1eee9",fontcolor="#203c33"];
+n7 [label="填空 1（checkpoint 持久化）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n8 [label="填空 2（interrupt：人审暂停）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n9 [label="填空 3（Command(resume=...)：恢复执行）",fillcolor="#e1eee9",fontcolor="#203c33"];
+n10 [label="自检挑战",fillcolor="#e1eee9",fontcolor="#203c33"];
+n11 [label="回到练习验证并解释取舍",fillcolor="#e1eee9",fontcolor="#203c33"];
+n0 -> n1 [label="阅读路径",style="solid"];
+n1 -> n2 [label="阅读路径",style="solid"];
+n2 -> n3 [label="阅读路径",style="solid"];
+n3 -> n4 [label="阅读路径",style="solid"];
+n4 -> n5 [label="阅读路径",style="solid"];
+n5 -> n6 [label="阅读路径",style="solid"];
+n6 -> n7 [label="阅读路径",style="solid"];
+n7 -> n8 [label="阅读路径",style="solid"];
+n8 -> n9 [label="阅读路径",style="solid"];
+n9 -> n10 [label="阅读路径",style="solid"];
+n10 -> n11 [label="应用",style="solid"];
+}

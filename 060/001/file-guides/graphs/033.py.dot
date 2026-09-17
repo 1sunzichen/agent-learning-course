@@ -1,0 +1,22 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="Tracer.__init__ · L22",fillcolor="#e1eee9",fontcolor="#203c33"];
+n1 [label="Tracer.start_trace · L25",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="Tracer.record_span · L32",fillcolor="#e1eee9",fontcolor="#203c33"];
+n3 [label="call_agent · L40",fillcolor="#e1eee9",fontcolor="#203c33"];
+n4 [label="render_tree · L49",fillcolor="#e1eee9",fontcolor="#203c33"];
+n5 [label="render_tree.walk · L55",fillcolor="#e1eee9",fontcolor="#203c33"];
+n6 [label="main · L63",fillcolor="#e1eee9",fontcolor="#203c33"];
+n7 [label="模块顶层 / 条件入口",fillcolor="#243e36",fontcolor="#ffffff"];
+n8 [label="Tracer",fillcolor="#f2ede4",fontcolor="#203c33"];
+n5 -> n5 [label="L58 方法候选",style="dashed"];
+n4 -> n5 [label="L60 方法候选",style="dashed"];
+n6 -> n8 [label="L64",style="solid"];
+n6 -> n1 [label="L65 方法候选",style="dashed"];
+n6 -> n2 [label="L68 方法候选",style="dashed"];
+n6 -> n3 [label="L71, L72, L73",style="solid"];
+n6 -> n4 [label="L77",style="solid"];
+n7 -> n6 [label="L86",style="solid"];
+}

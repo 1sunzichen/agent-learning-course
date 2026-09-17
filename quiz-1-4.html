@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent 学习 · 1-4 持久记忆 复习题</title>
+<style>
+  :root { --bg:#0f0f1a; --card:#1a1a2e; --accent:#4a9eff; --green:#2ecc71; --red:#e74c3c; --yellow:#f39c12; --text:#e0e0e0; --sub:#888; --border:#2a2a3e; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:20px; }
+  .container { max-width:720px; margin:0 auto; }
+  header { text-align:center; padding:16px 0; }
+  header h1 { font-size:22px; color:#fff; margin-bottom:6px; }
+  header p { font-size:13px; color:var(--sub); }
+  .stats { display:flex; gap:10px; margin:14px 0; flex-wrap:wrap; }
+  .stat { flex:1; min-width:80px; padding:10px; border-radius:10px; background:var(--card); border:1px solid var(--border); text-align:center; }
+  .stat .num { font-size:20px; font-weight:700; }
+  .stat .label { font-size:11px; color:var(--sub); margin-top:2px; }
+  .progress-wrap { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:4px; margin-bottom:16px; }
+  .progress-bar { height:10px; border-radius:7px; background:linear-gradient(90deg,var(--green),var(--accent)); transition:width .3s; }
+  .q { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:14px; }
+  .q .qn { font-size:14px; color:var(--accent); font-weight:700; margin-bottom:8px; }
+  .q .qt { font-size:16px; color:#fff; margin-bottom:14px; line-height:1.5; }
+  .opt { display:block; width:100%; text-align:left; padding:11px 14px; margin-bottom:8px; border-radius:9px; background:#16162a; border:1px solid var(--border); color:var(--text); cursor:pointer; font-size:14px; transition:.12s; }
+  .opt:hover { border-color:var(--accent); }
+  .opt.correct { background:rgba(46,204,113,.15); border-color:var(--green); color:var(--green); }
+  .opt.wrong { background:rgba(231,76,60,.15); border-color:var(--red); color:var(--red); }
+  .opt:disabled { cursor:default; opacity:.85; }
+  .explain { display:none; margin-top:10px; padding:12px; border-radius:9px; background:rgba(74,158,255,.08); border:1px solid rgba(74,158,255,.25); font-size:13px; line-height:1.6; color:#c8d8e8; }
+  .explain.show { display:block; }
+  .explain b { color:var(--accent); }
+  .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:6px; margin-left:6px; }
+  .tag.right { background:rgba(46,204,113,.2); color:var(--green); }
+  .tag.bad { background:rgba(231,76,60,.2); color:var(--red); }
+  .wrong-list { margin-top:18px; padding:14px; border-radius:12px; background:var(--card); border:1px solid var(--border); }
+  .wrong-list h3 { font-size:14px; color:var(--red); margin-bottom:8px; }
+  .wrong-list p { font-size:13px; color:var(--sub); }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🧠 Agent 学习 · 1-4 持久记忆 复习题</h1>
+    <p>昨天学了 1-4，点选项即时判断 · 答错自动进错题本</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="stDone">0</div><div class="label">已答</div></div>
+    <div class="stat"><div class="num" id="stRight" style="color:var(--green)">0</div><div class="label">答对</div></div>
+    <div class="stat"><div class="num" id="stWrong" style="color:var(--red)">0</div><div class="label">答错</div></div>
+  </div>
+
+  <div class="progress-wrap"><div class="progress-bar" id="pbar" style="width:0%"></div></div>
+
+  <div id="quiz"></div>
+
+  <div class="wrong-list" id="wrongList" style="display:none">
+    <h3>📕 错题本（本页答错的）</h3>
+    <div id="wrongItems"></div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "短期记忆和长期记忆的本质区别是什么？",
+    opts: ["短期记忆存向量库，长期记忆存 messages 列表", "短期记忆是 messages 会话历史（进程退就没了），长期记忆是落盘的向量库（重启还在）", "两者都存磁盘，只是格式不同", "短期记忆比长期记忆更持久"],
+    a: 1,
+    e: "短期记忆 = messages 列表，只活在本次会话；长期记忆 = Chroma PersistentClient 落盘，跨会话还在。这是 1-4 的核心区分。"
+  },
+  {
+    q: "1-4 和 1-3 的本质区别是？",
+    opts: ["1-4 用 chromadb.Client()，1-3 用 PersistentClient()", "1-4 用 PersistentClient() 落盘，1-3 用 Client() 存内存（退进程消失）", "两者没区别", "1-4 不需要 embedding"],
+    a: 1,
+    e: "1-3 的 chromadb.Client() 是临时库（内存），1-4 的 PersistentClient(path=...) 落盘。差一个 Persistent，就决定了「会话内检索」和「真长期记忆」的分界。"
+  },
+  {
+    q: "PersistentClient(path=\"./memory_db\") 里的 path 指的是什么？",
+    opts: ["固定的系统绝对路径", "相对「当前工作目录」的落盘路径，Chroma 首次运行自动创建", "远程服务器地址", "内存地址"],
+    a: 1,
+    e: "./ 是当前工作目录（你 cd 到的那个目录），memory_db 是 Chroma 自动创建的文件夹。你在哪跑脚本，它就在哪生成。"
+  },
+  {
+    q: "collection.add(ids=[uuid.uuid4().hex], documents=[fact]) 里为什么用 uuid？",
+    opts: ["加密数据，防止被偷看", "生成唯一 id，避免重复写入时覆盖旧记录", "加速向量检索", "压缩存储体积"],
+    a: 1,
+    e: "uuid.uuid4().hex 生成随机唯一 id。如果 id 重复，Chroma 的 add 是 upsert 语义会覆盖旧的；用随机 id 保证每次都是「新增」而非「覆盖」。"
+  },
+  {
+    q: "collection.query(query_texts=[query], n_results=n) 内部做了什么？",
+    opts: ["用 SQL 精确匹配查询词", "把查询词 embed 成向量，和库内所有向量算余弦相似度，排序取 top-n 返回原文", "返回库里全部记录", "随机返回 n 条"],
+    a: 1,
+    e: "query 内部：查询词 → embed → 与所有记忆向量算余弦相似度 → 排序 → 取 top-n → 返回这 n 条对应的原文。向量只负责算相似度排序，真正返回的是原文。"
+  },
+  {
+    q: "add（写）和 query（查）为什么必须用同一个 embedding 函数？",
+    opts: ["为了运行更快", "因为向量没有绝对语义，每个模型是独立坐标系，换模型后旧向量和新查询对不上，检索就废了", "只是语法上必须一致", "其实可以用不同的模型"],
+    a: 1,
+    e: "每个 embedding 模型都是独立训练出来的语义空间，坐标落点互不对应；且不同模型维度常不同，点积都算不了。换模型 = 换坐标系，检索失效。"
+  },
+  {
+    q: "metadata={\"hnsw:space\": \"cosine\"} 里的 cosine 是什么？",
+    opts: ["数据库名称", "距离度量方式（余弦距离，看向量方向不看长度）", "加密算法", "表名"],
+    a: 1,
+    e: "cosine 是距离度量方式——余弦相似度，度量两个向量的「方向」接近程度，对长度免疫。hnsw 是索引算法（近似最近邻搜索）。"
+  },
+  {
+    q: "db.get_or_create_collection(name=...) 的「get_or_create」意味着什么？",
+    opts: ["每次都新建一张表", "幂等操作：表存在就复用，不存在才新建（持久化的关键）", "删除并重建表", "备份表"],
+    a: 1,
+    e: "get_or_create 是幂等的。正因为第二次运行是「复用」同一张表而不是重建，上次的记忆才不丢——这正是持久化和临时内存库的核心差异。"
+  },
+  {
+    q: "向量数据库（Chroma）和关系型数据库（MySQL）的根本区别？",
+    opts: ["向量库查「相等」，MySQL 查「像不像」", "向量库做「语义相似度检索」，MySQL 做「精确匹配」", "两者完全一样", "向量库不支持持久化"],
+    a: 1,
+    e: "MySQL 查「相等」（WHERE name='Patrick'），Chroma 查「像不像」（语义最近 top-k）。因为 agent 要的是「用户换个问法也能命中」，所以用向量库。"
+  },
+  {
+    q: "remember 和 recall 的区别是？",
+    opts: ["remember 是读、recall 是写", "remember 是写（走 collection.add）、recall 是读（走 collection.query）", "两个都是写", "两个都是读"],
+    a: 1,
+    e: "remember 走 add 把信息写入长期记忆，recall 走 query 检索 top-n 记忆。一个「存」一个「取」，合起来才是完整的记忆闭环。"
+  },
+];
+
+const KEY = 'quiz-1-4-state';
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
+function save(o) { localStorage.setItem(KEY, JSON.stringify(o)); }
+
+let state = load();
+let wrong = state.wrong || [];
+
+const quiz = document.getElementById('quiz');
+const stDone = document.getElementById('stDone');
+const stRight = document.getElementById('stRight');
+const stWrong = document.getElementById('stWrong');
+const pbar = document.getElementById('pbar');
+const wrongList = document.getElementById('wrongList');
+const wrongItems = document.getElementById('wrongItems');
+
+function render() {
+  quiz.innerHTML = '';
+  let done = 0, right = 0, w = 0;
+  QUESTIONS.forEach((item, i) => {
+    const d = state[i];
+    const box = document.createElement('div');
+    box.className = 'q';
+    const qn = document.createElement('div');
+    qn.className = 'qn';
+    qn.textContent = '第 ' + (i+1) + ' 题';
+    if (d !== undefined) {
+      done++;
+      const tag = document.createElement('span');
+      tag.className = 'tag ' + (d === item.a ? 'right' : 'bad');
+      tag.textContent = d === item.a ? '✓ 对' : '✗ 错';
+      qn.appendChild(tag);
+      if (d === item.a) right++; else w++;
+    }
+    box.appendChild(qn);
+
+    const qt = document.createElement('div');
+    qt.className = 'qt';
+    qt.textContent = item.q;
+    box.appendChild(qt);
+
+    item.opts.forEach((opt, oi) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.textContent = String.fromCharCode(65+oi) + '. ' + opt;
+      if (d !== undefined) {
+        btn.disabled = true;
+        if (oi === item.a) btn.classList.add('correct');
+        else if (oi === d) btn.classList.add('wrong');
+      } else {
+        btn.onclick = () => answer(i, oi);
+      }
+      box.appendChild(btn);
+    });
+
+    const ex = document.createElement('div');
+    ex.className = 'explain' + (d !== undefined ? ' show' : '');
+    ex.innerHTML = '<b>解析：</b>' + item.e;
+    box.appendChild(ex);
+
+    quiz.appendChild(box);
+  });
+
+  stDone.textContent = done;
+  stRight.textContent = right;
+  stWrong.textContent = w;
+  pbar.style.width = (done / QUESTIONS.length * 100) + '%';
+
+  if (wrong.length) {
+    wrongList.style.display = 'block';
+    wrongItems.innerHTML = wrong.map(wi => {
+      const item = QUESTIONS[wi];
+      return '<p><b>第' + (wi+1) + '题：</b>' + item.q + '（正确答案：' + String.fromCharCode(65+item.a) + '）</p>';
+    }).join('');
+  } else {
+    wrongList.style.display = 'none';
+  }
+}
+
+function answer(i, oi) {
+  state[i] = oi;
+  if (oi !== QUESTIONS[i].a) {
+    if (wrong.indexOf(i) === -1) wrong.push(i);
+  }
+  state.wrong = wrong;
+  save(state);
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

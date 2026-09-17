@@ -1,0 +1,25 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="NewEventBus · L31",fillcolor="#e1eee9",fontcolor="#203c33"];
+n1 [label="*EventBus.subscribe · L36",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="*EventBus.publish · L43",fillcolor="#e1eee9",fontcolor="#203c33"];
+n3 [label="weatherAgent · L53",fillcolor="#e1eee9",fontcolor="#203c33"];
+n4 [label="newsAgent · L54",fillcolor="#e1eee9",fontcolor="#203c33"];
+n5 [label="stockAgent · L55",fillcolor="#e1eee9",fontcolor="#203c33"];
+n6 [label="main · L57",fillcolor="#e1eee9",fontcolor="#203c33"];
+n7 [label="程序入口",fillcolor="#243e36",fontcolor="#ffffff"];
+n8 [label="b.mu.Lock",fillcolor="#f2ede4",fontcolor="#203c33"];
+n9 [label="b.mu.Unlock",fillcolor="#f2ede4",fontcolor="#203c33"];
+n10 [label="h",fillcolor="#f2ede4",fontcolor="#203c33"];
+n7 -> n6 [label="入口",style="solid"];
+n1 -> n8 [label="L37",style="solid"];
+n1 -> n9 [label="L38",style="solid"];
+n2 -> n8 [label="L44",style="solid"];
+n2 -> n9 [label="L46",style="solid"];
+n2 -> n10 [label="L48",style="solid"];
+n6 -> n0 [label="L58",style="solid"];
+n6 -> n1 [label="L60 方法候选, L61 方法候选, L62 方法候选",style="dashed"];
+n6 -> n2 [label="L65 方法候选, L67 方法候选, L69 方法候选, L71 方法候选",style="dashed"];
+}

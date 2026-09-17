@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent 学习 · 1-8 工具设计进阶 复习题</title>
+<style>
+  :root { --bg:#0f0f1a; --card:#1a1a2e; --accent:#4a9eff; --green:#2ecc71; --red:#e74c3c; --yellow:#f39c12; --text:#e0e0e0; --sub:#888; --border:#2a2a3e; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:20px; }
+  .container { max-width:720px; margin:0 auto; }
+  header { text-align:center; padding:16px 0; }
+  header h1 { font-size:22px; color:#fff; margin-bottom:6px; }
+  header p { font-size:13px; color:var(--sub); }
+  .stats { display:flex; gap:10px; margin:14px 0; flex-wrap:wrap; }
+  .stat { flex:1; min-width:80px; padding:10px; border-radius:10px; background:var(--card); border:1px solid var(--border); text-align:center; }
+  .stat .num { font-size:20px; font-weight:700; }
+  .stat .label { font-size:11px; color:var(--sub); margin-top:2px; }
+  .progress-wrap { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:4px; margin-bottom:16px; }
+  .progress-bar { height:10px; border-radius:7px; background:linear-gradient(90deg,var(--green),var(--accent)); transition:width .3s; }
+  .q { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:14px; }
+  .q .qn { font-size:14px; color:var(--accent); font-weight:700; margin-bottom:8px; }
+  .q .qt { font-size:16px; color:#fff; margin-bottom:14px; line-height:1.5; }
+  .opt { display:block; width:100%; text-align:left; padding:11px 14px; margin-bottom:8px; border-radius:9px; background:#16162a; border:1px solid var(--border); color:var(--text); cursor:pointer; font-size:14px; transition:.12s; }
+  .opt:hover { border-color:var(--accent); }
+  .opt.correct { background:rgba(46,204,113,.15); border-color:var(--green); color:var(--green); }
+  .opt.wrong { background:rgba(231,76,60,.15); border-color:var(--red); color:var(--red); }
+  .opt:disabled { cursor:default; opacity:.85; }
+  .explain { display:none; margin-top:10px; padding:12px; border-radius:9px; background:rgba(74,158,255,.08); border:1px solid rgba(74,158,255,.25); font-size:13px; line-height:1.6; color:#c8d8e8; }
+  .explain.show { display:block; }
+  .explain b { color:var(--accent); }
+  .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:6px; margin-left:6px; }
+  .tag.right { background:rgba(46,204,113,.2); color:var(--green); }
+  .tag.bad { background:rgba(231,76,60,.2); color:var(--red); }
+  .wrong-list { margin-top:18px; padding:14px; border-radius:12px; background:var(--card); border:1px solid var(--border); }
+  .wrong-list h3 { font-size:14px; color:var(--red); margin-bottom:8px; }
+  .wrong-list p { font-size:13px; color:var(--sub); }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🧠 Agent 学习 · 1-8 工具设计进阶 复习题</h1>
+    <p>昨天学了 1-8，点选项即时判断 · 答错自动进错题本</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="stDone">0</div><div class="label">已答</div></div>
+    <div class="stat"><div class="num" id="stRight" style="color:var(--green)">0</div><div class="label">答对</div></div>
+    <div class="stat"><div class="num" id="stWrong" style="color:var(--red)">0</div><div class="label">答错</div></div>
+  </div>
+
+  <div class="progress-wrap"><div class="progress-bar" id="pbar" style="width:0%"></div></div>
+
+  <div id="quiz"></div>
+
+  <div class="wrong-list" id="wrongList" style="display:none">
+    <h3>📕 错题本（本页答错的）</h3>
+    <div id="wrongItems"></div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "生产级工具要包哪四层防护？",
+    opts: ["读/写/删/改", "重试 / 超时 / 幂等 / 降级", "登录/加密/备份/日志", "缓存/索引/分页/排序"],
+    a: 1,
+    e: "重试扛偶发故障、超时防挂死、幂等防重复副作用、降级保证可用。这是 agent 稳定性的基础。"
+  },
+  {
+    q: "重试（retry）的作用是？",
+    opts: ["加速", "偶发故障（网络抖动）自动重试几次，扛过瞬时错误", "加密", "省 token"],
+    a: 1,
+    e: "偶发故障是瞬时的，重试几次大概率就过了。重试扛的是「瞬时错误」，不是「确定性错误」。"
+  },
+  {
+    q: "超时（timeout）的作用是？",
+    opts: ["加速", "工具卡死时不无限等，超时判失败进入重试", "省电", "美观"],
+    a: 1,
+    e: "工具可能卡死（后端挂了不回包）。不设超时，一个卡死的调用能把整个 agent 拖死。"
+  },
+  {
+    q: "幂等（idempotent）的作用是？",
+    opts: ["加速", "重复请求不重复生效（防重复提交/重复扣款）", "加密", "压缩"],
+    a: 1,
+    e: "幂等保证「同一个请求重复发也只有一个效果」。下单、扣款这类有副作用的操作必须幂等。"
+  },
+  {
+    q: "降级（fallback）的作用是？",
+    opts: ["提升速度", "彻底失败时给兜底，保证服务可用（宁可次优不崩）", "美化", "省内存"],
+    a: 1,
+    e: "重试耗尽后不能崩，给个「还能用」的兜底（默认值/缓存/旧数据）。降级保的是「可用性」。"
+  },
+  {
+    q: "缓存幂等 和 请求ID幂等 的区别？",
+    opts: ["一样", "缓存按「内容」去重；请求ID按「请求」去重（拦重复提交）", "请求ID更快", "缓存不用内存"],
+    a: 1,
+    e: "缓存：同一城市就复用。请求ID：同一次请求重复提交才拦。有副作用的操作必须用请求ID，否则重复点击扣两次钱。"
+  },
+  {
+    q: "重试为什么要「退避」（越等越久）？",
+    opts: ["好看", "给后端恢复时间，避免立刻连续打", "省 token", "不用退避"],
+    a: 1,
+    e: "立刻连续重试等于变相压后端；退避（指数增长）给故障留恢复时间。"
+  },
+  {
+    q: "退避为什么要加「抖动」（随机）？",
+    opts: ["好看", "防止所有客户端同时重试打爆后端（惊群）", "加密", "不用加"],
+    a: 1,
+    e: "如果所有客户端同时失败、同时重试，会在同一时刻打爆后端。加随机抖动把重试时间打散。"
+  },
+  {
+    q: "超时设太长的后果是？",
+    opts: ["更快", "卡死的调用占资源不放，拖慢整个链路", "更准", "没后果"],
+    a: 1,
+    e: "卡死的调用占着线程/连接不放，用户干等，整个链路被拖慢。"
+  },
+  {
+    q: "超时设太短 + 重试，可能引发什么恶性循环？",
+    opts: ["更快", "重试风暴/雪崩：超时→重试→流量放大→压垮后端→更多超时", "更省", "没后果"],
+    a: 1,
+    e: "超时触发重试，重试放大流量，流量压垮后端，后端更慢，更多超时……恶性循环。面试问「重试的坑」答这个。"
+  },
+];
+
+const KEY = 'quiz-1-8-state';
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
+function save(o) { localStorage.setItem(KEY, JSON.stringify(o)); }
+
+let state = load();
+let wrong = state.wrong || [];
+
+const quiz = document.getElementById('quiz');
+const stDone = document.getElementById('stDone');
+const stRight = document.getElementById('stRight');
+const stWrong = document.getElementById('stWrong');
+const pbar = document.getElementById('pbar');
+const wrongList = document.getElementById('wrongList');
+const wrongItems = document.getElementById('wrongItems');
+
+function render() {
+  quiz.innerHTML = '';
+  let done = 0, right = 0, w = 0;
+  QUESTIONS.forEach((item, i) => {
+    const d = state[i];
+    const box = document.createElement('div');
+    box.className = 'q';
+    const qn = document.createElement('div');
+    qn.className = 'qn';
+    qn.textContent = '第 ' + (i+1) + ' 题';
+    if (d !== undefined) {
+      done++;
+      const tag = document.createElement('span');
+      tag.className = 'tag ' + (d === item.a ? 'right' : 'bad');
+      tag.textContent = d === item.a ? '✓ 对' : '✗ 错';
+      qn.appendChild(tag);
+      if (d === item.a) right++; else w++;
+    }
+    box.appendChild(qn);
+    const qt = document.createElement('div');
+    qt.className = 'qt';
+    qt.textContent = item.q;
+    box.appendChild(qt);
+    item.opts.forEach((opt, oi) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.textContent = String.fromCharCode(65+oi) + '. ' + opt;
+      if (d !== undefined) {
+        btn.disabled = true;
+        if (oi === item.a) btn.classList.add('correct');
+        else if (oi === d) btn.classList.add('wrong');
+      } else {
+        btn.onclick = () => answer(i, oi);
+      }
+      box.appendChild(btn);
+    });
+    const ex = document.createElement('div');
+    ex.className = 'explain' + (d !== undefined ? ' show' : '');
+    ex.innerHTML = '<b>解析：</b>' + item.e;
+    box.appendChild(ex);
+    quiz.appendChild(box);
+  });
+  stDone.textContent = done;
+  stRight.textContent = right;
+  stWrong.textContent = w;
+  pbar.style.width = (done / QUESTIONS.length * 100) + '%';
+  if (wrong.length) {
+    wrongList.style.display = 'block';
+    wrongItems.innerHTML = wrong.map(wi => {
+      const item = QUESTIONS[wi];
+      return '<p><b>第' + (wi+1) + '题：</b>' + item.q + '（正确答案：' + String.fromCharCode(65+item.a) + '）</p>';
+    }).join('');
+  } else {
+    wrongList.style.display = 'none';
+  }
+}
+
+function answer(i, oi) {
+  state[i] = oi;
+  if (oi !== QUESTIONS[i].a) {
+    if (wrong.indexOf(i) === -1) wrong.push(i);
+  }
+  state.wrong = wrong;
+  save(state);
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

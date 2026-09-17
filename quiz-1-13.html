@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent 学习 · 1-13 Prompt 工程 复习题</title>
+<style>
+  :root { --bg:#0f0f1a; --card:#1a1a2e; --accent:#4a9eff; --green:#2ecc71; --red:#e74c3c; --yellow:#f39c12; --text:#e0e0e0; --sub:#888; --border:#2a2a3e; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:20px; }
+  .container { max-width:720px; margin:0 auto; }
+  header { text-align:center; padding:16px 0; }
+  header h1 { font-size:22px; color:#fff; margin-bottom:6px; }
+  header p { font-size:13px; color:var(--sub); }
+  .stats { display:flex; gap:10px; margin:14px 0; flex-wrap:wrap; }
+  .stat { flex:1; min-width:80px; padding:10px; border-radius:10px; background:var(--card); border:1px solid var(--border); text-align:center; }
+  .stat .num { font-size:20px; font-weight:700; }
+  .stat .label { font-size:11px; color:var(--sub); margin-top:2px; }
+  .progress-wrap { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:4px; margin-bottom:16px; }
+  .progress-bar { height:10px; border-radius:7px; background:linear-gradient(90deg,var(--green),var(--accent)); transition:width .3s; }
+  .q { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:14px; }
+  .q .qn { font-size:14px; color:var(--accent); font-weight:700; margin-bottom:8px; }
+  .q .qt { font-size:16px; color:#fff; margin-bottom:14px; line-height:1.5; }
+  .opt { display:block; width:100%; text-align:left; padding:11px 14px; margin-bottom:8px; border-radius:9px; background:#16162a; border:1px solid var(--border); color:var(--text); cursor:pointer; font-size:14px; transition:.12s; }
+  .opt:hover { border-color:var(--accent); }
+  .opt.correct { background:rgba(46,204,113,.15); border-color:var(--green); color:var(--green); }
+  .opt.wrong { background:rgba(231,76,60,.15); border-color:var(--red); color:var(--red); }
+  .opt:disabled { cursor:default; opacity:.85; }
+  .explain { display:none; margin-top:10px; padding:12px; border-radius:9px; background:rgba(74,158,255,.08); border:1px solid rgba(74,158,255,.25); font-size:13px; line-height:1.6; color:#c8d8e8; }
+  .explain.show { display:block; }
+  .explain b { color:var(--accent); }
+  .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:6px; margin-left:6px; }
+  .tag.right { background:rgba(46,204,113,.2); color:var(--green); }
+  .tag.bad { background:rgba(231,76,60,.2); color:var(--red); }
+  .wrong-list { margin-top:18px; padding:14px; border-radius:12px; background:var(--card); border:1px solid var(--border); }
+  .wrong-list h3 { font-size:14px; color:var(--red); margin-bottom:8px; }
+  .wrong-list p { font-size:13px; color:var(--sub); }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🧠 Agent 学习 · 1-13 Prompt 工程 复习题</h1>
+    <p>昨天学了 1-13，点选项即时判断 · 答错自动进错题本</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="stDone">0</div><div class="label">已答</div></div>
+    <div class="stat"><div class="num" id="stRight" style="color:var(--green)">0</div><div class="label">答对</div></div>
+    <div class="stat"><div class="num" id="stWrong" style="color:var(--red)">0</div><div class="label">答错</div></div>
+  </div>
+
+  <div class="progress-wrap"><div class="progress-bar" id="pbar" style="width:0%"></div></div>
+
+  <div id="quiz"></div>
+
+  <div class="wrong-list" id="wrongList" style="display:none">
+    <h3>📕 错题本（本页答错的）</h3>
+    <div id="wrongItems"></div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "Prompt 工程的核心是什么？",
+    opts: ["写代码", "换问法——同一任务换种问法，结果天差地别", "加密", "省 token"],
+    a: 1,
+    e: "Prompt 工程的核心就是「换问法」。同样的任务，零样本、给例子、加思考、换身份，答案质量完全不同。"
+  },
+  {
+    q: "四种经典 prompt 技巧是？",
+    opts: ["增删改查", "zero-shot / few-shot / CoT / 角色设定", "登录/加密/备份/日志", "缓存/索引/分页/排序"],
+    a: 1,
+    e: "零样本直接问、few-shot 给例题、CoT 加「一步步想」、角色设定给身份。"
+  },
+  {
+    q: "zero-shot（零样本）是什么？",
+    opts: ["给一堆例子", "直接问，不给任何例子", "加一句「一步步想」", "给一个身份"],
+    a: 1,
+    e: "zero-shot 就是裸问——把任务直接丢给模型，不提供任何示例或提示。"
+  },
+  {
+    q: "few-shot 是什么？",
+    opts: ["直接问", "给解好的例题，让模型照着套路走", "加「一步步想」", "给身份"],
+    a: 1,
+    e: "few-shot 的核心是「示例即引导」——先给一个解好的例题，模型会模仿例题的格式和思路。"
+  },
+  {
+    q: "CoT（思维链）是什么？",
+    opts: ["直接问", "加一句「一步步思考」，逼模型展示推理过程", "给例子", "给身份"],
+    a: 1,
+    e: "CoT 就是加一句「一步步思考」，让模型把推理过程显式展示出来，而不是直接蹦答案。"
+  },
+  {
+    q: "角色设定是什么？",
+    opts: ["直接问", "给 system 一个具体身份，改变回答风格和严谨度", "给例子", "加「一步步想」"],
+    a: 1,
+    e: "给 system 一个身份（如「严谨的小学数学老师」），会改变模型的生成分布——老师口吻更严谨、更爱讲步骤。"
+  },
+  {
+    q: "生产里最强的 prompt 组合通常是？",
+    opts: ["只用 zero-shot", "few-shot + CoT（示例给套路 + 逼推理）", "只用角色设定", "不用 prompt"],
+    a: 1,
+    e: "few-shot 给解题套路，CoT 逼出推理过程，两者叠加效果最好。这是生产最常用的组合。"
+  },
+  {
+    q: "CoT 为什么能提高正确率？",
+    opts: ["不能", "把「跳步」逼成「逐步」，显式推理减少直觉跳错", "因为跑得快", "因为便宜"],
+    a: 1,
+    e: "显式推理把大问题拆成小问题逐步求解，每步都过一遍，减少直觉跳错；中间结果还会给最终答案「锚定」。"
+  },
+  {
+    q: "few-shot 的核心思想是？",
+    opts: ["直接问最快", "示例即引导——给模型一个解题套路", "给身份最稳", "加「一步步想」最省"],
+    a: 1,
+    e: "把解好的例题喂进去，模型会模仿例题的格式和思路来解新题。这就是「示例即引导」。"
+  },
+  {
+    q: "角色设定的本质是什么？",
+    opts: ["无所谓", "用身份约束风格（改变生成分布）", "加密", "省 token"],
+    a: 1,
+    e: "给 system 一个身份，本质是「用身份约束风格」——同一任务，老师口吻 vs 助手口吻，答案风格完全不同。"
+  },
+];
+
+const KEY = 'quiz-1-13-state';
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
+function save(o) { localStorage.setItem(KEY, JSON.stringify(o)); }
+
+let state = load();
+let wrong = state.wrong || [];
+
+const quiz = document.getElementById('quiz');
+const stDone = document.getElementById('stDone');
+const stRight = document.getElementById('stRight');
+const stWrong = document.getElementById('stWrong');
+const pbar = document.getElementById('pbar');
+const wrongList = document.getElementById('wrongList');
+const wrongItems = document.getElementById('wrongItems');
+
+function render() {
+  quiz.innerHTML = '';
+  let done = 0, right = 0, w = 0;
+  QUESTIONS.forEach((item, i) => {
+    const d = state[i];
+    const box = document.createElement('div');
+    box.className = 'q';
+    const qn = document.createElement('div');
+    qn.className = 'qn';
+    qn.textContent = '第 ' + (i+1) + ' 题';
+    if (d !== undefined) {
+      done++;
+      const tag = document.createElement('span');
+      tag.className = 'tag ' + (d === item.a ? 'right' : 'bad');
+      tag.textContent = d === item.a ? '✓ 对' : '✗ 错';
+      qn.appendChild(tag);
+      if (d === item.a) right++; else w++;
+    }
+    box.appendChild(qn);
+    const qt = document.createElement('div');
+    qt.className = 'qt';
+    qt.textContent = item.q;
+    box.appendChild(qt);
+    item.opts.forEach((opt, oi) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.textContent = String.fromCharCode(65+oi) + '. ' + opt;
+      if (d !== undefined) {
+        btn.disabled = true;
+        if (oi === item.a) btn.classList.add('correct');
+        else if (oi === d) btn.classList.add('wrong');
+      } else {
+        btn.onclick = () => answer(i, oi);
+      }
+      box.appendChild(btn);
+    });
+    const ex = document.createElement('div');
+    ex.className = 'explain' + (d !== undefined ? ' show' : '');
+    ex.innerHTML = '<b>解析：</b>' + item.e;
+    box.appendChild(ex);
+    quiz.appendChild(box);
+  });
+  stDone.textContent = done;
+  stRight.textContent = right;
+  stWrong.textContent = w;
+  pbar.style.width = (done / QUESTIONS.length * 100) + '%';
+  if (wrong.length) {
+    wrongList.style.display = 'block';
+    wrongItems.innerHTML = wrong.map(wi => {
+      const item = QUESTIONS[wi];
+      return '<p><b>第' + (wi+1) + '题：</b>' + item.q + '（正确答案：' + String.fromCharCode(65+item.a) + '）</p>';
+    }).join('');
+  } else {
+    wrongList.style.display = 'none';
+  }
+}
+
+function answer(i, oi) {
+  state[i] = oi;
+  if (oi !== QUESTIONS[i].a) {
+    if (wrong.indexOf(i) === -1) wrong.push(i);
+  }
+  state.wrong = wrong;
+  save(state);
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

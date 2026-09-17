@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent 学习 · 1-5 流式输出 复习题</title>
+<style>
+  :root { --bg:#0f0f1a; --card:#1a1a2e; --accent:#4a9eff; --green:#2ecc71; --red:#e74c3c; --yellow:#f39c12; --text:#e0e0e0; --sub:#888; --border:#2a2a3e; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:20px; }
+  .container { max-width:720px; margin:0 auto; }
+  header { text-align:center; padding:16px 0; }
+  header h1 { font-size:22px; color:#fff; margin-bottom:6px; }
+  header p { font-size:13px; color:var(--sub); }
+  .stats { display:flex; gap:10px; margin:14px 0; flex-wrap:wrap; }
+  .stat { flex:1; min-width:80px; padding:10px; border-radius:10px; background:var(--card); border:1px solid var(--border); text-align:center; }
+  .stat .num { font-size:20px; font-weight:700; }
+  .stat .label { font-size:11px; color:var(--sub); margin-top:2px; }
+  .progress-wrap { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:4px; margin-bottom:16px; }
+  .progress-bar { height:10px; border-radius:7px; background:linear-gradient(90deg,var(--green),var(--accent)); transition:width .3s; }
+  .q { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:14px; }
+  .q .qn { font-size:14px; color:var(--accent); font-weight:700; margin-bottom:8px; }
+  .q .qt { font-size:16px; color:#fff; margin-bottom:14px; line-height:1.5; }
+  .opt { display:block; width:100%; text-align:left; padding:11px 14px; margin-bottom:8px; border-radius:9px; background:#16162a; border:1px solid var(--border); color:var(--text); cursor:pointer; font-size:14px; transition:.12s; }
+  .opt:hover { border-color:var(--accent); }
+  .opt.correct { background:rgba(46,204,113,.15); border-color:var(--green); color:var(--green); }
+  .opt.wrong { background:rgba(231,76,60,.15); border-color:var(--red); color:var(--red); }
+  .opt:disabled { cursor:default; opacity:.85; }
+  .explain { display:none; margin-top:10px; padding:12px; border-radius:9px; background:rgba(74,158,255,.08); border:1px solid rgba(74,158,255,.25); font-size:13px; line-height:1.6; color:#c8d8e8; }
+  .explain.show { display:block; }
+  .explain b { color:var(--accent); }
+  .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:6px; margin-left:6px; }
+  .tag.right { background:rgba(46,204,113,.2); color:var(--green); }
+  .tag.bad { background:rgba(231,76,60,.2); color:var(--red); }
+  .wrong-list { margin-top:18px; padding:14px; border-radius:12px; background:var(--card); border:1px solid var(--border); }
+  .wrong-list h3 { font-size:14px; color:var(--red); margin-bottom:8px; }
+  .wrong-list p { font-size:13px; color:var(--sub); }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🧠 Agent 学习 · 1-5 流式输出 复习题</h1>
+    <p>昨天学了 1-5，点选项即时判断 · 答错自动进错题本</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="stDone">0</div><div class="label">已答</div></div>
+    <div class="stat"><div class="num" id="stRight" style="color:var(--green)">0</div><div class="label">答对</div></div>
+    <div class="stat"><div class="num" id="stWrong" style="color:var(--red)">0</div><div class="label">答错</div></div>
+  </div>
+
+  <div class="progress-wrap"><div class="progress-bar" id="pbar" style="width:0%"></div></div>
+
+  <div id="quiz"></div>
+
+  <div class="wrong-list" id="wrongList" style="display:none">
+    <h3>📕 错题本（本页答错的）</h3>
+    <div id="wrongItems"></div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "流式输出（stream=True）和非流式的本质区别是？",
+    opts: ["流式更快，非流式更慢", "非流式一次返回完整 msg.content 直接读；流式返回「增量迭代器」，逐 chunk 读 delta 自己累积", "流式只能输出文本，非流式能调工具", "两者返回的数据结构完全一样"],
+    a: 1,
+    e: "非流式 create() 一次返回完整 message，直接读 .content 就行；流式 create(stream=True) 返回的是一个迭代器（增量流），要 for chunk in stream 逐片读 delta，再自己拼成完整内容。"
+  },
+  {
+    q: "stream=True 这个参数到底改变了 create() 的什么？",
+    opts: ["让模型回答得更快", "让返回值从「一次性完整响应对象」变成「可迭代的增量流」", "让 temperature 参数失效", "让工具调用被禁用"],
+    a: 1,
+    e: "stream=True 改变的是返回类型：不再一次性给你完整响应，而是返回一个生成器/迭代器，遍历时逐 chunk 吐出增量 delta。后面 for chunk in stream 才有东西可遍历。"
+  },
+  {
+    q: "流式下 delta.content 是什么？",
+    opts: ["完整的回答文本", "这一小片文字（可能是一个词甚至几个字），不是完整回答", "token 的编号", "已生成内容的累积结果"],
+    a: 1,
+    e: "每个 chunk 的 delta.content 只是「这一小片」——可能是一个词、几个字甚至一个标点。完整回答要靠你自己把这些片累积起来。"
+  },
+  {
+    q: "代码里为什么写 full_content += delta.content，而不是 full_content = delta.content？",
+    opts: ["写错了，应该用 =", "因为每片只到一部分，用 += 累积才能拼出完整回答；用 = 会覆盖，最后只剩最后一片", "+= 比 = 快", "两者没区别"],
+    a: 1,
+    e: "delta.content 每片只带来一小段，= 会丢掉之前累积的内容只留最新一片；+= 才是「追加」。这是流式累积的固定写法。"
+  },
+  {
+    q: "print(delta.content, end=\"\", flush=True) 里 end=\"\" 的作用是什么？",
+    opts: ["让字体变小", "不自动换行（print 默认结尾加换行符，否则每片文字各占一行）", "关闭输出", "拼接字符串"],
+    a: 1,
+    e: "print 默认在结尾加换行符。流式每片都调用 print，不加 end=\"\" 的话每片文字会各占一行，拼出来是竖着的一列而非连续文本。"
+  },
+  {
+    q: "flush=True 的作用是什么？",
+    opts: ["清空内存", "立即把输出缓冲区刷到屏幕（否则 Python 会攒一批才显示，失去逐字效果）", "关闭缓冲区", "加速网络请求"],
+    a: 1,
+    e: "标准输出默认有缓冲，print 的内容可能攒着不立刻显示。flush=True 强制立即刷到终端，才能看到「逐字吐」的打字机效果，而不是等半天一次性冒出来。"
+  },
+  {
+    q: "流式下工具调用的 arguments 为什么是「分片」？",
+    opts: ["服务器故意加密", "一段 JSON 字符串在网络传输时被切成多片，每片只到一部分", "因为 temperature 太高", "其实是一次性给全的"],
+    a: 1,
+    e: "流式下 arguments 是一段 JSON 字符串，传输时被切成多片逐片下发，每片只到一部分。必须自己按 index 拼完整，才能 json.loads 取参数。"
+  },
+  {
+    q: "为什么累积工具调用时要按 tcd.index 拼到同一个槽位？",
+    opts: ["index 是随机数", "一次可能发起多个工具调用，index 表示「第几个调用」，同名调用的分片必须拼到同一个 tool_calls[index]", "为了排序", "为了去重"],
+    a: 1,
+    e: "一次请求里模型可能并行发起多个工具调用（如同时查北京和上海天气）。每个调用的分片带着自己的 index，拼的时候按 index 归位，否则多个调用的参数会互相污染。"
+  },
+  {
+    q: "while len(tool_calls) <= idx 这句在做什么？",
+    opts: ["无限循环 bug", "为还没出现过的 index 预创建空槽位，保证直接给 tool_calls[idx] 赋值不会越界", "清理旧数据", "排序工具调用"],
+    a: 1,
+    e: "分片可能先到 index=1 的调用（index=0 还没来），直接 tool_calls[1]=... 会 IndexError。这段把列表扩到足够长，每个新槽位初始化为空 dict 再填字段。"
+  },
+  {
+    q: "什么时候才能对累积的 arguments 做 json.loads？",
+    opts: ["收到第一片时", "流结束、所有分片拼完整之后", "任何时候都行", "根本不需要 json.loads"],
+    a: 1,
+    e: "分片没拼完时 arguments 是不完整 JSON，json.loads 会抛错。必须等 for 循环结束（流读完）拼出完整 JSON，才能 loads 成 dict 取参数。"
+  },
+  {
+    q: "为什么聊天产品几乎都要流式输出？",
+    opts: ["为了省服务器电费", "降低「首字延迟」（TTFT）——非流式要等整段生成完才返回，流式第一个 chunk 很快到，用户立刻看到反馈", "因为流式生成的文字更准确", "为了加密传输"],
+    a: 1,
+    e: "非流式要等模型把整段生成完才一次性返回，首字延迟高，用户干等。流式第一个 chunk 很快就到，屏幕立刻开始吐字。TTFT（Time To First Token）是衡量这个的核心指标。"
+  },
+  {
+    q: "if not chunk.choices: continue 这个判断的作用？",
+    opts: ["没用的防御代码", "有些 chunk（如结束标记/空 chunk）没有 choices 内容，跳过避免对空列表取下标报 IndexError", "提前结束流", "过滤重复内容"],
+    a: 1,
+    e: "流中可能夹着不含 choices 的 chunk（如某些结束信号或空 chunk）。不判断的话 chunk.choices[0] 会对空列表取下标直接 IndexError，所以先 continue 跳过。"
+  },
+];
+
+const KEY = 'quiz-1-5-state';
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
+function save(o) { localStorage.setItem(KEY, JSON.stringify(o)); }
+
+let state = load();
+let wrong = state.wrong || [];
+
+const quiz = document.getElementById('quiz');
+const stDone = document.getElementById('stDone');
+const stRight = document.getElementById('stRight');
+const stWrong = document.getElementById('stWrong');
+const pbar = document.getElementById('pbar');
+const wrongList = document.getElementById('wrongList');
+const wrongItems = document.getElementById('wrongItems');
+
+function render() {
+  quiz.innerHTML = '';
+  let done = 0, right = 0, w = 0;
+  QUESTIONS.forEach((item, i) => {
+    const d = state[i];
+    const box = document.createElement('div');
+    box.className = 'q';
+    const qn = document.createElement('div');
+    qn.className = 'qn';
+    qn.textContent = '第 ' + (i+1) + ' 题';
+    if (d !== undefined) {
+      done++;
+      const tag = document.createElement('span');
+      tag.className = 'tag ' + (d === item.a ? 'right' : 'bad');
+      tag.textContent = d === item.a ? '✓ 对' : '✗ 错';
+      qn.appendChild(tag);
+      if (d === item.a) right++; else w++;
+    }
+    box.appendChild(qn);
+
+    const qt = document.createElement('div');
+    qt.className = 'qt';
+    qt.textContent = item.q;
+    box.appendChild(qt);
+
+    item.opts.forEach((opt, oi) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.textContent = String.fromCharCode(65+oi) + '. ' + opt;
+      if (d !== undefined) {
+        btn.disabled = true;
+        if (oi === item.a) btn.classList.add('correct');
+        else if (oi === d) btn.classList.add('wrong');
+      } else {
+        btn.onclick = () => answer(i, oi);
+      }
+      box.appendChild(btn);
+    });
+
+    const ex = document.createElement('div');
+    ex.className = 'explain' + (d !== undefined ? ' show' : '');
+    ex.innerHTML = '<b>解析：</b>' + item.e;
+    box.appendChild(ex);
+
+    quiz.appendChild(box);
+  });
+
+  stDone.textContent = done;
+  stRight.textContent = right;
+  stWrong.textContent = w;
+  pbar.style.width = (done / QUESTIONS.length * 100) + '%';
+
+  if (wrong.length) {
+    wrongList.style.display = 'block';
+    wrongItems.innerHTML = wrong.map(wi => {
+      const item = QUESTIONS[wi];
+      return '<p><b>第' + (wi+1) + '题：</b>' + item.q + '（正确答案：' + String.fromCharCode(65+item.a) + '）</p>';
+    }).join('');
+  } else {
+    wrongList.style.display = 'none';
+  }
+}
+
+function answer(i, oi) {
+  state[i] = oi;
+  if (oi !== QUESTIONS[i].a) {
+    if (wrong.indexOf(i) === -1) wrong.push(i);
+  }
+  state.wrong = wrong;
+  save(state);
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

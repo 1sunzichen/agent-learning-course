@@ -1,0 +1,16 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="agent · L50",fillcolor="#e1eee9",fontcolor="#203c33"];
+n1 [label="judge · L67",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="main · L71",fillcolor="#e1eee9",fontcolor="#203c33"];
+n3 [label="程序入口",fillcolor="#243e36",fontcolor="#ffffff"];
+n4 [label="strings.Contains",fillcolor="#f2ede4",fontcolor="#203c33"];
+n5 [label="math.Round",fillcolor="#f2ede4",fontcolor="#203c33"];
+n3 -> n2 [label="入口",style="solid"];
+n1 -> n4 [label="L68",style="solid"];
+n2 -> n0 [label="L78",style="solid"];
+n2 -> n1 [label="L79",style="solid"];
+n2 -> n5 [label="L93",style="solid"];
+}

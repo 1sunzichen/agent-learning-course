@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent 学习 · 1-12 token 计数与成本优化 复习题</title>
+<style>
+  :root { --bg:#0f0f1a; --card:#1a1a2e; --accent:#4a9eff; --green:#2ecc71; --red:#e74c3c; --yellow:#f39c12; --text:#e0e0e0; --sub:#888; --border:#2a2a3e; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:20px; }
+  .container { max-width:720px; margin:0 auto; }
+  header { text-align:center; padding:16px 0; }
+  header h1 { font-size:22px; color:#fff; margin-bottom:6px; }
+  header p { font-size:13px; color:var(--sub); }
+  .stats { display:flex; gap:10px; margin:14px 0; flex-wrap:wrap; }
+  .stat { flex:1; min-width:80px; padding:10px; border-radius:10px; background:var(--card); border:1px solid var(--border); text-align:center; }
+  .stat .num { font-size:20px; font-weight:700; }
+  .stat .label { font-size:11px; color:var(--sub); margin-top:2px; }
+  .progress-wrap { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:4px; margin-bottom:16px; }
+  .progress-bar { height:10px; border-radius:7px; background:linear-gradient(90deg,var(--green),var(--accent)); transition:width .3s; }
+  .q { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:14px; }
+  .q .qn { font-size:14px; color:var(--accent); font-weight:700; margin-bottom:8px; }
+  .q .qt { font-size:16px; color:#fff; margin-bottom:14px; line-height:1.5; }
+  .opt { display:block; width:100%; text-align:left; padding:11px 14px; margin-bottom:8px; border-radius:9px; background:#16162a; border:1px solid var(--border); color:var(--text); cursor:pointer; font-size:14px; transition:.12s; }
+  .opt:hover { border-color:var(--accent); }
+  .opt.correct { background:rgba(46,204,113,.15); border-color:var(--green); color:var(--green); }
+  .opt.wrong { background:rgba(231,76,60,.15); border-color:var(--red); color:var(--red); }
+  .opt:disabled { cursor:default; opacity:.85; }
+  .explain { display:none; margin-top:10px; padding:12px; border-radius:9px; background:rgba(74,158,255,.08); border:1px solid rgba(74,158,255,.25); font-size:13px; line-height:1.6; color:#c8d8e8; }
+  .explain.show { display:block; }
+  .explain b { color:var(--accent); }
+  .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:6px; margin-left:6px; }
+  .tag.right { background:rgba(46,204,113,.2); color:var(--green); }
+  .tag.bad { background:rgba(231,76,60,.2); color:var(--red); }
+  .wrong-list { margin-top:18px; padding:14px; border-radius:12px; background:var(--card); border:1px solid var(--border); }
+  .wrong-list h3 { font-size:14px; color:var(--red); margin-bottom:8px; }
+  .wrong-list p { font-size:13px; color:var(--sub); }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🧠 Agent 学习 · 1-12 token 计数与成本优化 复习题</h1>
+    <p>昨天学了 1-12，点选项即时判断 · 答错自动进错题本</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="stDone">0</div><div class="label">已答</div></div>
+    <div class="stat"><div class="num" id="stRight" style="color:var(--green)">0</div><div class="label">答对</div></div>
+    <div class="stat"><div class="num" id="stWrong" style="color:var(--red)">0</div><div class="label">答错</div></div>
+  </div>
+
+  <div class="progress-wrap"><div class="progress-bar" id="pbar" style="width:0%"></div></div>
+
+  <div id="quiz"></div>
+
+  <div class="wrong-list" id="wrongList" style="display:none">
+    <h3>📕 错题本（本页答错的）</h3>
+    <div id="wrongItems"></div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "精确的 token 数从哪拿？",
+    opts: ["自己手动数", "API 返回的 usage（prompt_tokens / completion_tokens）", "凭感觉估", "没有这个数据"],
+    a: 1,
+    e: "usage 是服务端算好的精确值。prompt_tokens 是输入、completion_tokens 是输出。"
+  },
+  {
+    q: "本地估算 token 用什么方法？",
+    opts: ["精确算法", "近似：中文 1 字≈1 token，英文 1 词≈1.3 token", "随机猜", "不用估"],
+    a: 1,
+    e: "本地只能近似。GPT 可用 tiktoken 精确算，deepseek 未公开 tokenizer，所以用近似。"
+  },
+  {
+    q: "成本计算公式是？",
+    opts: ["token 直接相加", "(prompt_tokens×输入单价 + completion_tokens×输出单价) / 1_000_000", "随便估", "不花钱"],
+    a: 1,
+    e: "输入输出单价不同要分开乘，除以 1_000_000 是因为单价单位是「元/百万 token」。"
+  },
+  {
+    q: "为什么要除以 1_000_000？",
+    opts: ["好看", "单价单位是「元/百万 token」", "加密需要", "无所谓"],
+    a: 1,
+    e: "单价标的是每百万 token 多少钱，所以总 token 要先除以百万再乘单价。"
+  },
+  {
+    q: "输出 token（completion）为什么比输入（prompt）贵？",
+    opts: ["一样贵", "输出要逐个自回归生成，计算量更大", "输出更便宜", "没区别"],
+    a: 1,
+    e: "输入是一次性编码，输出要每个 token 逐个生成，计算量更大，所以输出单价更高。"
+  },
+  {
+    q: "省钱策略有哪些？",
+    opts: ["只压缩 prompt", "压 prompt / 减工具定义 / 缓存 / 摘要 / 选便宜模型", "什么都不做", "只选便宜模型"],
+    a: 1,
+    e: "五招：压 prompt、少塞不用的工具、结果缓存、长对话摘要、简单任务用便宜模型。"
+  },
+  {
+    q: "不用的工具要不要塞进 TOOLS？",
+    opts: ["要，越多越好", "不要，会增加 token 成本", "随便", "必须全塞"],
+    a: 1,
+    e: "工具定义每次请求都随 prompt 发给 LLM，不用的工具白占 token。只给必要的工具。"
+  },
+  {
+    q: "estimate_tokens 和 usage 的区别？",
+    opts: ["一样", "estimate 是本地近似；usage 是服务端精确值", "usage 是近似", "没区别"],
+    a: 1,
+    e: "estimate_tokens 用字符数近似（上线前预估用），usage 是服务端算好的精确值（实际计费用）。"
+  },
+  {
+    q: "为什么省钱要先会算 token？",
+    opts: ["无所谓", "不算就不知道钱花在哪、优化有没有效果", "为了好看", "不需要"],
+    a: 1,
+    e: "算不出单次 token 和成本，就不知道哪个环节烧钱，优化也无从下手。"
+  },
+  {
+    q: "结果缓存为什么能省大钱？",
+    opts: ["不能省", "缓存省掉的是重复的（更贵的）输出计算", "只是变快", "没影响"],
+    a: 1,
+    e: "相同请求直接返回缓存，不调 LLM，省的是输入+输出整套 token，尤其省掉更贵的输出。"
+  },
+];
+
+const KEY = 'quiz-1-12-state';
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
+function save(o) { localStorage.setItem(KEY, JSON.stringify(o)); }
+
+let state = load();
+let wrong = state.wrong || [];
+
+const quiz = document.getElementById('quiz');
+const stDone = document.getElementById('stDone');
+const stRight = document.getElementById('stRight');
+const stWrong = document.getElementById('stWrong');
+const pbar = document.getElementById('pbar');
+const wrongList = document.getElementById('wrongList');
+const wrongItems = document.getElementById('wrongItems');
+
+function render() {
+  quiz.innerHTML = '';
+  let done = 0, right = 0, w = 0;
+  QUESTIONS.forEach((item, i) => {
+    const d = state[i];
+    const box = document.createElement('div');
+    box.className = 'q';
+    const qn = document.createElement('div');
+    qn.className = 'qn';
+    qn.textContent = '第 ' + (i+1) + ' 题';
+    if (d !== undefined) {
+      done++;
+      const tag = document.createElement('span');
+      tag.className = 'tag ' + (d === item.a ? 'right' : 'bad');
+      tag.textContent = d === item.a ? '✓ 对' : '✗ 错';
+      qn.appendChild(tag);
+      if (d === item.a) right++; else w++;
+    }
+    box.appendChild(qn);
+    const qt = document.createElement('div');
+    qt.className = 'qt';
+    qt.textContent = item.q;
+    box.appendChild(qt);
+    item.opts.forEach((opt, oi) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.textContent = String.fromCharCode(65+oi) + '. ' + opt;
+      if (d !== undefined) {
+        btn.disabled = true;
+        if (oi === item.a) btn.classList.add('correct');
+        else if (oi === d) btn.classList.add('wrong');
+      } else {
+        btn.onclick = () => answer(i, oi);
+      }
+      box.appendChild(btn);
+    });
+    const ex = document.createElement('div');
+    ex.className = 'explain' + (d !== undefined ? ' show' : '');
+    ex.innerHTML = '<b>解析：</b>' + item.e;
+    box.appendChild(ex);
+    quiz.appendChild(box);
+  });
+  stDone.textContent = done;
+  stRight.textContent = right;
+  stWrong.textContent = w;
+  pbar.style.width = (done / QUESTIONS.length * 100) + '%';
+  if (wrong.length) {
+    wrongList.style.display = 'block';
+    wrongItems.innerHTML = wrong.map(wi => {
+      const item = QUESTIONS[wi];
+      return '<p><b>第' + (wi+1) + '题：</b>' + item.q + '（正确答案：' + String.fromCharCode(65+item.a) + '）</p>';
+    }).join('');
+  } else {
+    wrongList.style.display = 'none';
+  }
+}
+
+function answer(i, oi) {
+  state[i] = oi;
+  if (oi !== QUESTIONS[i].a) {
+    if (wrong.indexOf(i) === -1) wrong.push(i);
+  }
+  state.wrong = wrong;
+  save(state);
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

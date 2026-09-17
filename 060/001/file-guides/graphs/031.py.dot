@@ -1,0 +1,28 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="Blackboard.__init__ · L20",fillcolor="#e1eee9",fontcolor="#203c33"];
+n1 [label="Blackboard.write · L23",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="Blackboard.read · L29",fillcolor="#e1eee9",fontcolor="#203c33"];
+n3 [label="weather_agent · L37",fillcolor="#e1eee9",fontcolor="#203c33"];
+n4 [label="traffic_agent · L42",fillcolor="#e1eee9",fontcolor="#203c33"];
+n5 [label="food_agent · L47",fillcolor="#e1eee9",fontcolor="#203c33"];
+n6 [label="advisor_agent · L53",fillcolor="#e1eee9",fontcolor="#203c33"];
+n7 [label="main · L61",fillcolor="#e1eee9",fontcolor="#203c33"];
+n8 [label="模块顶层 / 条件入口",fillcolor="#243e36",fontcolor="#ffffff"];
+n9 [label="Blackboard",fillcolor="#f2ede4",fontcolor="#203c33"];
+n10 [label="agent",fillcolor="#ffe4bb",fontcolor="#203c33"];
+n3 -> n1 [label="L38 方法候选",style="dashed"];
+n4 -> n1 [label="L43 方法候选",style="dashed"];
+n5 -> n2 [label="L48 方法候选",style="dashed"];
+n5 -> n1 [label="L49 方法候选",style="dashed"];
+n7 -> n9 [label="L62",style="solid"];
+n7 -> n10 [label="L64",style="dashed"];
+n7 -> n2 [label="L70 方法候选",style="dashed"];
+n8 -> n7 [label="L77",style="solid"];
+n7 -> n3 [label="L63 引用/注册",style="dashed"];
+n7 -> n4 [label="L63 引用/注册",style="dashed"];
+n7 -> n5 [label="L63 引用/注册",style="dashed"];
+n7 -> n6 [label="L63 引用/注册",style="dashed"];
+}

@@ -1,0 +1,33 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="LocalEmbeddingFunction.__call__ · L40",fillcolor="#e1eee9",fontcolor="#203c33"];
+n1 [label="remember · L60",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="recall · L73",fillcolor="#e1eee9",fontcolor="#203c33"];
+n3 [label="模块顶层 / 条件入口",fillcolor="#243e36",fontcolor="#ffffff"];
+n4 [label="OpenAI",fillcolor="#f2ede4",fontcolor="#203c33"];
+n5 [label="snapshot_download",fillcolor="#f2ede4",fontcolor="#203c33"];
+n6 [label="SentenceTransformer",fillcolor="#f2ede4",fontcolor="#203c33"];
+n7 [label="embed_model.encode().tolist",fillcolor="#f2ede4",fontcolor="#203c33"];
+n8 [label="db.get_or_create_collection",fillcolor="#f2ede4",fontcolor="#203c33"];
+n9 [label="LocalEmbeddingFunction",fillcolor="#f2ede4",fontcolor="#203c33"];
+n10 [label="collection.query",fillcolor="#f2ede4",fontcolor="#203c33"];
+n11 [label="input",fillcolor="#f2ede4",fontcolor="#203c33"];
+n12 [label="client.chat.completions.create",fillcolor="#f2ede4",fontcolor="#203c33"];
+n13 [label="json.loads",fillcolor="#f2ede4",fontcolor="#203c33"];
+n14 [label="TOOL_FUNCS[动态键]",fillcolor="#ffe4bb",fontcolor="#203c33"];
+n3 -> n4 [label="L29",style="solid"];
+n3 -> n5 [label="L35",style="solid"];
+n3 -> n6 [label="L36",style="solid"];
+n0 -> n7 [label="L41",style="solid"];
+n3 -> n8 [label="L51",style="solid"];
+n3 -> n9 [label="L53",style="solid"];
+n2 -> n10 [label="L78",style="solid"];
+n3 -> n11 [label="L134",style="solid"];
+n3 -> n12 [label="L148",style="solid"];
+n3 -> n13 [label="L157",style="solid"];
+n3 -> n14 [label="L159",style="dashed"];
+n3 -> n1 [label="L88 引用/注册",style="dashed"];
+n3 -> n2 [label="L88 引用/注册",style="dashed"];
+}

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent 学习 · 1-7 Reflection 复习题</title>
+<style>
+  :root { --bg:#0f0f1a; --card:#1a1a2e; --accent:#4a9eff; --green:#2ecc71; --red:#e74c3c; --yellow:#f39c12; --text:#e0e0e0; --sub:#888; --border:#2a2a3e; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:20px; }
+  .container { max-width:720px; margin:0 auto; }
+  header { text-align:center; padding:16px 0; }
+  header h1 { font-size:22px; color:#fff; margin-bottom:6px; }
+  header p { font-size:13px; color:var(--sub); }
+  .stats { display:flex; gap:10px; margin:14px 0; flex-wrap:wrap; }
+  .stat { flex:1; min-width:80px; padding:10px; border-radius:10px; background:var(--card); border:1px solid var(--border); text-align:center; }
+  .stat .num { font-size:20px; font-weight:700; }
+  .stat .label { font-size:11px; color:var(--sub); margin-top:2px; }
+  .progress-wrap { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:4px; margin-bottom:16px; }
+  .progress-bar { height:10px; border-radius:7px; background:linear-gradient(90deg,var(--green),var(--accent)); transition:width .3s; }
+  .q { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:14px; }
+  .q .qn { font-size:14px; color:var(--accent); font-weight:700; margin-bottom:8px; }
+  .q .qt { font-size:16px; color:#fff; margin-bottom:14px; line-height:1.5; }
+  .opt { display:block; width:100%; text-align:left; padding:11px 14px; margin-bottom:8px; border-radius:9px; background:#16162a; border:1px solid var(--border); color:var(--text); cursor:pointer; font-size:14px; transition:.12s; }
+  .opt:hover { border-color:var(--accent); }
+  .opt.correct { background:rgba(46,204,113,.15); border-color:var(--green); color:var(--green); }
+  .opt.wrong { background:rgba(231,76,60,.15); border-color:var(--red); color:var(--red); }
+  .opt:disabled { cursor:default; opacity:.85; }
+  .explain { display:none; margin-top:10px; padding:12px; border-radius:9px; background:rgba(74,158,255,.08); border:1px solid rgba(74,158,255,.25); font-size:13px; line-height:1.6; color:#c8d8e8; }
+  .explain.show { display:block; }
+  .explain b { color:var(--accent); }
+  .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:6px; margin-left:6px; }
+  .tag.right { background:rgba(46,204,113,.2); color:var(--green); }
+  .tag.bad { background:rgba(231,76,60,.2); color:var(--red); }
+  .wrong-list { margin-top:18px; padding:14px; border-radius:12px; background:var(--card); border:1px solid var(--border); }
+  .wrong-list h3 { font-size:14px; color:var(--red); margin-bottom:8px; }
+  .wrong-list p { font-size:13px; color:var(--sub); }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🧠 Agent 学习 · 1-7 Reflection 复习题</h1>
+    <p>昨天学了 1-7，点选项即时判断 · 答错自动进错题本</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="stDone">0</div><div class="label">已答</div></div>
+    <div class="stat"><div class="num" id="stRight" style="color:var(--green)">0</div><div class="label">答对</div></div>
+    <div class="stat"><div class="num" id="stWrong" style="color:var(--red)">0</div><div class="label">答错</div></div>
+  </div>
+
+  <div class="progress-wrap"><div class="progress-bar" id="pbar" style="width:0%"></div></div>
+
+  <div id="quiz"></div>
+
+  <div class="wrong-list" id="wrongList" style="display:none">
+    <h3>📕 错题本（本页答错的）</h3>
+    <div id="wrongItems"></div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "Reflection 自我修正 和 ReAct 的本质区别是？",
+    opts: ["Reflection 更快", "ReAct 每步想一步做一步；Reflection 是执行完回头看结果、反思、重试", "Reflection 不用 LLM", "两者一样"],
+    a: 1,
+    e: "ReAct 是过程驱动（每步想+做+看）；Reflection 是结果驱动（做完→反思→重试）。"
+  },
+  {
+    q: "solve() 里的 feedback 参数是干嘛的？",
+    opts: ["控制温度", "把上一轮反思的意见喂回 LLM，让它知道上次错哪", "加密", "没用"],
+    a: 1,
+    e: "第一轮 feedback=None 直接作答；第二轮把反思意见拼进 user 消息，LLM 才知道上次错在哪。"
+  },
+  {
+    q: "reflect() 函数在做什么？",
+    opts: ["直接解题", "让 LLM 当「批改老师」，检查第一轮答案找错", "调工具", "保存结果"],
+    a: 1,
+    e: "reflect 把「题目 + 第一轮答案」喂给一个批改老师角色，让它挑错。反思的本质就是用 LLM 当自己的 critic。"
+  },
+  {
+    q: "反思意见为什么必须传回第二轮 solve？",
+    opts: ["好看", "否则反思白做，第二轮不知道上次错哪", "省 token", "其实不用传"],
+    a: 1,
+    e: "反思意见不传回，第二轮就是无脑重答一遍，和第一轮没区别。传回才形成闭环。"
+  },
+  {
+    q: "玩具里的「批改老师」（LLM 自己批改）在生产里是最弱的，为什么？",
+    opts: ["太慢", "LLM 没有 ground truth，可能把对判错、把错漏掉", "太贵", "有语法错误"],
+    a: 1,
+    e: "LLM 批改只是在「猜」你对不对——没有标准答案，它会把对的判错、把错的漏掉。"
+  },
+  {
+    q: "生产里「批改」优先用什么？",
+    opts: ["LLM 的意见", "可验证信号：跑代码拿报错、跑测试、linter", "随机猜", "用户手动批"],
+    a: 1,
+    e: "优先用确定性的可验证信号（报错、测试、linter），因为它们是客观事实，不是 LLM 的「我觉得」。"
+  },
+  {
+    q: "什么时候才退回 LLM-as-judge？",
+    opts: ["有测试的时候", "无可验证信号时（主观任务，如「这文案好不好」）", "任何时候", "永远不用"],
+    a: 1,
+    e: "只有没有可验证信号（主观任务）才退回 LLM-as-judge，且要精心设计 prompt + 打分 rubric。"
+  },
+  {
+    q: "Reflexion 框架的三个角色是？",
+    opts: ["读/写/删", "actor（作答）+ evaluator（评估）+ self-reflection（反思）", "输入/处理/输出", "前端/后端/数据库"],
+    a: 1,
+    e: "Reflexion 核心是 actor 作答、evaluator 评估（常用测试/ground truth）、self-reflection 生成口头反思存进记忆。"
+  },
+  {
+    q: "反思 和 多模型投票 的区别？",
+    opts: ["一样", "反思是同一模型改自己的答案；投票是多个模型/多次采样取多数", "投票更快", "反思不用 LLM"],
+    a: 1,
+    e: "两条不同路线：反思是「回头看改」，投票是「采样取众」。生产里常组合用。"
+  },
+  {
+    q: "反思为什么能提高正确率？",
+    opts: ["玄学", "把「作答」和「检查」拆成两个独立推理过程，检查时只专注找错", "温度更高", "其实不能提高"],
+    a: 1,
+    e: "LLM 一次性生成容易「顺着惯性」写错；反思把它切成「写」和「检查」两步，检查时角色切换、只专注找错，更容易发现。"
+  },
+];
+
+const KEY = 'quiz-1-7-state';
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
+function save(o) { localStorage.setItem(KEY, JSON.stringify(o)); }
+
+let state = load();
+let wrong = state.wrong || [];
+
+const quiz = document.getElementById('quiz');
+const stDone = document.getElementById('stDone');
+const stRight = document.getElementById('stRight');
+const stWrong = document.getElementById('stWrong');
+const pbar = document.getElementById('pbar');
+const wrongList = document.getElementById('wrongList');
+const wrongItems = document.getElementById('wrongItems');
+
+function render() {
+  quiz.innerHTML = '';
+  let done = 0, right = 0, w = 0;
+  QUESTIONS.forEach((item, i) => {
+    const d = state[i];
+    const box = document.createElement('div');
+    box.className = 'q';
+    const qn = document.createElement('div');
+    qn.className = 'qn';
+    qn.textContent = '第 ' + (i+1) + ' 题';
+    if (d !== undefined) {
+      done++;
+      const tag = document.createElement('span');
+      tag.className = 'tag ' + (d === item.a ? 'right' : 'bad');
+      tag.textContent = d === item.a ? '✓ 对' : '✗ 错';
+      qn.appendChild(tag);
+      if (d === item.a) right++; else w++;
+    }
+    box.appendChild(qn);
+    const qt = document.createElement('div');
+    qt.className = 'qt';
+    qt.textContent = item.q;
+    box.appendChild(qt);
+    item.opts.forEach((opt, oi) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.textContent = String.fromCharCode(65+oi) + '. ' + opt;
+      if (d !== undefined) {
+        btn.disabled = true;
+        if (oi === item.a) btn.classList.add('correct');
+        else if (oi === d) btn.classList.add('wrong');
+      } else {
+        btn.onclick = () => answer(i, oi);
+      }
+      box.appendChild(btn);
+    });
+    const ex = document.createElement('div');
+    ex.className = 'explain' + (d !== undefined ? ' show' : '');
+    ex.innerHTML = '<b>解析：</b>' + item.e;
+    box.appendChild(ex);
+    quiz.appendChild(box);
+  });
+  stDone.textContent = done;
+  stRight.textContent = right;
+  stWrong.textContent = w;
+  pbar.style.width = (done / QUESTIONS.length * 100) + '%';
+  if (wrong.length) {
+    wrongList.style.display = 'block';
+    wrongItems.innerHTML = wrong.map(wi => {
+      const item = QUESTIONS[wi];
+      return '<p><b>第' + (wi+1) + '题：</b>' + item.q + '（正确答案：' + String.fromCharCode(65+item.a) + '）</p>';
+    }).join('');
+  } else {
+    wrongList.style.display = 'none';
+  }
+}
+
+function answer(i, oi) {
+  state[i] = oi;
+  if (oi !== QUESTIONS[i].a) {
+    if (wrong.indexOf(i) === -1) wrong.push(i);
+  }
+  state.wrong = wrong;
+  save(state);
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

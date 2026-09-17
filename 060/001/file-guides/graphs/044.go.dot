@@ -1,0 +1,28 @@
+digraph G {
+graph [rankdir=LR,bgcolor="transparent",pad="0.35",nodesep="0.28",ranksep="0.6"];
+node [shape=box,style="rounded,filled",fontname="PingFang SC",fontsize=12,margin="0.16,0.11",color="#b8c4ba"];
+edge [fontname="PingFang SC",fontsize=9,color="#8b9c92",fontcolor="#52675c"];
+n0 [label="*Graph.load · L38",fillcolor="#e1eee9",fontcolor="#203c33"];
+n1 [label="*Graph.save · L48",fillcolor="#e1eee9",fontcolor="#203c33"];
+n2 [label="generateNode · L54",fillcolor="#e1eee9",fontcolor="#203c33"];
+n3 [label="reviewNode · L60",fillcolor="#e1eee9",fontcolor="#203c33"];
+n4 [label="*Graph.run · L67",fillcolor="#e1eee9",fontcolor="#203c33"];
+n5 [label="main · L79",fillcolor="#e1eee9",fontcolor="#203c33"];
+n6 [label="程序入口",fillcolor="#243e36",fontcolor="#ffffff"];
+n7 [label="os.ReadFile",fillcolor="#f2ede4",fontcolor="#203c33"];
+n8 [label="json.Unmarshal",fillcolor="#f2ede4",fontcolor="#203c33"];
+n9 [label="json.Marshal",fillcolor="#f2ede4",fontcolor="#203c33"];
+n10 [label="os.WriteFile",fillcolor="#f2ede4",fontcolor="#203c33"];
+n11 [label="os.Remove",fillcolor="#f2ede4",fontcolor="#203c33"];
+n6 -> n5 [label="入口",style="solid"];
+n0 -> n7 [label="L39",style="solid"];
+n0 -> n8 [label="L44",style="solid"];
+n1 -> n9 [label="L49",style="solid"];
+n1 -> n10 [label="L50",style="solid"];
+n4 -> n2 [label="L69",style="solid"];
+n4 -> n1 [label="L70 方法候选, L75 方法候选",style="dashed"];
+n4 -> n0 [label="L73 方法候选",style="dashed"];
+n4 -> n3 [label="L74",style="solid"];
+n5 -> n11 [label="L80",style="solid"];
+n5 -> n4 [label="L88 方法候选, L92 方法候选",style="dashed"];
+}
